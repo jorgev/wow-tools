@@ -183,6 +183,7 @@ int main(int argc, char* argv[])
 	std::string source;
 	std::string destination;
 
+	// define the command line arguments that we accept
 	po::options_description desc("Program options");
 	desc.add_options()
 		("help,h", "print usage")
@@ -194,12 +195,14 @@ int main(int argc, char* argv[])
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 	po::notify(vm);	
 
+	// see if the user just wants usage printed
 	if (vm.count("help"))
 	{
 		std::cout << desc << std::endl;
 		return 0;
 	}
 
+	// grab any command line args
 	if (vm.count("input-file"))
 		filename = vm["input-file"].as<std::string>();
 	if (vm.count("source"))
@@ -207,6 +210,7 @@ int main(int argc, char* argv[])
 	if (vm.count("destination"))
 		destination = vm["destination"].as<std::string>();
 
+	// let the user know what we're doing, to make sure it's what they want
 	std::cout << "Parsing file: " << filename.c_str() << std::endl;
 	if (source.length() > 0)
 		std::cout << "Filtering on source: " << source.c_str() << std::endl;
@@ -214,6 +218,7 @@ int main(int argc, char* argv[])
 		std::cout << "Filtering on destination: " << destination.c_str() << std::endl;
 	std::cout << std::endl;
 
+	// open the log file
 	std::fstream ifs(filename.c_str(), std::ifstream::in);
 	if (!ifs)
 	{
@@ -221,6 +226,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	
+	// initialize our counters and other objects and start reading lines
 	long linecount = 0;
 	long lineparsedcount = 0;
 	char line[LINESIZE];
@@ -237,7 +243,7 @@ int main(int argc, char* argv[])
 		{
 //			strptime(line, "%m/%d %H:%M:%S", linecount == 0 ? &start : &end);
 
-			// parse the combat data
+			// parse the combat data...comma-separated with occasional double-quotes surrounding some fields
 			std::vector<const char*> fields;
 			p += 2;
 			char* temp = p;
@@ -263,9 +269,11 @@ int main(int argc, char* argv[])
 				p = temp;
 			}
 
+			// make sure we have enough fields on this line, otherwise we ignore it
 			if (fields.size() < 11)
 				continue;
 
+			// put the fields into some meaningful variable names
 			std::string action, srcname, dstname, effect, result, ph, result2;
 			unsigned long long srcguid, dstguid;
 			unsigned int srcflags, dstflags, amount;
@@ -282,6 +290,7 @@ int main(int argc, char* argv[])
 			result2 = fields[10];
 			amount = atol(result2.c_str());
 
+			// log item must be one of these types (this list may change)
 			if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 			{
 				// if we're filtering on source, check for a match
