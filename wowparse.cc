@@ -284,12 +284,15 @@ int main(int argc, char* argv[])
 
 			if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 			{
+				// if we're filtering on source, check for a match
 				if (source.length() > 0 && srcname.find(source) == std::string::npos)
 					continue;
 
+				// if we're filtering on destination, check for a match
 				if (destination.length() > 0 && dstname.find(destination) == std::string::npos)
 					continue;
 
+				// we only track things which have a source and a destination	
 				if (srcname != "nil" && dstname != "nil")
 				{
 					// fixup for swing damage, since format is different
@@ -299,6 +302,7 @@ int main(int argc, char* argv[])
 						amount = atol(result.c_str());
 					}
 
+					// get or create the current source by id
 					sourcestats_ptr cursource = sources[srcguid];
 					if (cursource == NULL)
 					{
@@ -306,26 +310,31 @@ int main(int argc, char* argv[])
 						sources[srcguid] = cursource;
 					}
 
+					// add to overall damage or healing stats at the source level
 					if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
 						cursource->addtodamage(amount);
 					else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 						cursource->addtohealing(amount);
 
+					// get or create the current destination by id
 					destinationmap& destinations = cursource->getdestinations();
 					destinationstats_ptr curdestination = destinations[dstguid];
 					if (curdestination == NULL)
 					{
+						// if this is a player character, we set the flag
 						curdestination = destinationstats_ptr(new destinationstats(dstguid, dstname));
 						if ((dstguid & 0x00f0000000000000LL) == 0)
 							curdestination->setisplayer();
 						destinations[dstguid] = curdestination;
 					}
 
+					// add to overall damage or healing stats at the destination level
 					if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
 						curdestination->addtodamage(amount);
 					else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 						curdestination->addtohealing(amount);
 
+					// get the current attack type
 					attackstats_ptr curattack;
 					attackvector& attacks = curdestination->getattacks();
 					attackiter iter3 = attacks.begin();
@@ -338,12 +347,15 @@ int main(int argc, char* argv[])
 							break;
 						}
 					}
+
+					// this attack type doesn't exist yet for the destination target, create it
 					if (!curattack)
 					{
 						curattack = attackstats_ptr(new attackstats(effect));
 						curdestination->addattack(curattack);
 					}
 
+					// update the individual healing or damage stat
 					if (action == SPELL_DAMAGE)
 					{
 						curattack->addspelldamage(amount);
@@ -370,6 +382,7 @@ int main(int argc, char* argv[])
 					}
 				}
 
+				// this is the actual # of lines we processed
 				lineparsedcount++;
 			}
 		}
@@ -380,6 +393,7 @@ int main(int argc, char* argv[])
 	unsigned long globalhealing = 0;
 	for (sourceiter iter = sources.begin(); iter != sources.end(); iter++)
 	{
+		// iterate through each source
 		const sourcestats_ptr tmp = iter->second;
 		std::cout << tmp->getname() << " (0x" << std::uppercase << std::hex << std::setw(16) << std::setfill('0') << tmp->getid() << "): " << std::dec;
 		unsigned long totaldamage = tmp->gettotaldamage();
@@ -393,6 +407,8 @@ int main(int argc, char* argv[])
 		if (totalhealing > 0)
 			std::cout << totalhealing << " healing done";
 		std::cout << std::endl;
+
+		// for each source, iterate through all the destination targets
 		destinationmap& destinations = tmp->getdestinations();
 		for (destinationiter iter2 = destinations.begin(); iter2 != destinations.end(); iter2++)
 		{
@@ -405,6 +421,8 @@ int main(int argc, char* argv[])
 			if (totalhealing > 0)
 				std::cout << totalhealing << " healing received";
 			std::cout << std::endl;
+
+			// now we iterate through all the attack/healing types from source -> destination
 			attackvector& attacks = desttmp->getattacks();
 			attackiter iter3 = attacks.begin();
 			while (iter3 != attacks.end())
@@ -481,9 +499,12 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
+
+	// for a visual, we dump out a URI for a google chart
 	std::string damagechart = "http://chart.apis.google.com/chart?chtt=Damage&chts=FF0000&cht=p&chs=640x360&chd=t:" + damagedata + "&chl=" + damagelabel;
 	std::string healingchart = "http://chart.apis.google.com/chart?chtt=Healing&chts=0000FF&cht=p&chs=640x360&chd=t:";
 	std::cout << "Use the following URI for a damage chart:" << std::endl << damagechart << std::endl;
 
 	return 0;
 }
+
