@@ -505,7 +505,7 @@ int main(int argc, char* argv[])
 		const sourcestats_ptr tmp = iter->second;
 		if (tmp->gettotaldamage() > 0)
 			damage_vec.push_back(iter->second);
-		if (tmp->gettotalhealing() > 0)
+		if (tmp->gettotalhealing() > 0 && (tmp->getid() & 0x00f0000000000000LL) == 0) // only care about player healing
 			healing_vec.push_back(iter->second);
 	}
 	std::sort(damage_vec.begin(), damage_vec.end(), compare_damage());
@@ -531,19 +531,43 @@ int main(int argc, char* argv[])
 	p = healing_vec.begin();
 	while (p != healing_vec.end())
 	{
-		const sourcestats_ptr temp = *p;
+		const sourcestats_ptr tmp = *p;
+		char buf[256], buf2[256];
+		if (healingdata.size() == 0)
+			sprintf(buf, "%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
+		else
+			sprintf(buf, ",%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
+		healingdata += buf;
+		sprintf(buf, "%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
+		if (healinglabel.size() == 0)
+			sprintf(buf2, "%s+(%s%%)", tmp->getname().c_str(), buf);
+		else
+			sprintf(buf2, "|%s+(%s%%)", tmp->getname().c_str(), buf);
+		healinglabel += buf2;
 		p++;
 	}
 
 	// for a visual, we dump out a URI for a google chart
-	std::string damagechart = "http://chart.apis.google.com/chart?";
-	if (destination.length() == 0)
-		damagechart += "chtt=Total+Damage";
-	else
-		damagechart += "chtt=Damage+-+" + destination;
-	damagechart += "&chts=FF0000&cht=p&chs=640x440&chd=t:" + damagedata + "&chl=" + damagelabel;
-	std::string healingchart = "http://chart.apis.google.com/chart?chtt=Healing&chts=0000FF&cht=p&chs=640x440&chd=t:";
-	std::cout << "Use the following URI for a damage chart:" << std::endl << damagechart << std::endl;
+	if (damage_vec.size() > 0)
+	{
+		std::string damagechart = "http://chart.apis.google.com/chart?";
+		if (destination.length() == 0)
+			damagechart += "chtt=Total+Damage";
+		else
+			damagechart += "chtt=Damage+-+" + destination;
+		damagechart += "&chts=FF0000&cht=p&chs=640x440&chd=t:" + damagedata + "&chl=" + damagelabel;
+		std::cout << "Use the following URI for a damage chart:" << std::endl << damagechart << std::endl;
+	}
+	if (healing_vec.size() > 0)
+	{
+		std::string healingchart = "http://chart.apis.google.com/chart?";
+		if (destination.length() == 0)
+			healingchart += "chtt=Total+Healing";
+		else
+			healingchart += "chtt=Healing+-+" + destination;
+		healingchart += "&chts=0000FF&cht=p&chs=640x440&chd=t:" + healingdata + "&chl=" + healinglabel;
+		std::cout << "Use the following URI for a healing chart:" << std::endl << healingchart << std::endl;
+	}
 
 	return 0;
 }
