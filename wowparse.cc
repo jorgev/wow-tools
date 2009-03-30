@@ -176,6 +176,21 @@ typedef boost::shared_ptr<sourcestats> sourcestats_ptr;
 typedef std::map<unsigned long long, sourcestats_ptr> sourcemap;
 typedef sourcemap::const_iterator sourceiter;
 
+// for sorting
+class compare_damage
+{
+public:
+	bool operator()(const sourcestats_ptr& p1, const sourcestats_ptr& p2) const
+		{ return p1->gettotaldamage() > p2->gettotaldamage(); }
+};
+
+class compare_healing
+{
+public:
+	bool operator()(const sourcestats_ptr& p1, const sourcestats_ptr& p2) const
+		{ return p1->gettotalhealing() > p2->gettotalhealing(); }
+};
+
 int main(int argc, char* argv[])
 {
 	// first arg should be file name
@@ -239,161 +254,161 @@ int main(int argc, char* argv[])
 
 		// double space separates date and combat info
 		char* p = strstr(line, "  ");
-		if (p != NULL)
-		{
-//			strptime(line, "%m/%d %H:%M:%S", linecount == 0 ? &start : &end);
+		if (p == NULL)
+			continue;
 
-			// parse the combat data...comma-separated with occasional double-quotes surrounding some fields
-			std::vector<const char*> fields;
-			p += 2;
-			char* temp = p;
-			while (*temp)
+//		strptime(line, "%m/%d %H:%M:%S", linecount == 0 ? &start : &end);
+
+		// parse the combat data...comma-separated with occasional double-quotes surrounding some fields
+		std::vector<const char*> fields;
+		p += 2;
+		char* temp = p;
+		while (*temp)
+		{
+			bool inquotes = false;
+			if (*temp == '"')
 			{
-				bool inquotes = false;
+				inquotes = true;
+				p = ++temp;
+			}
+			while (*temp && (*temp != ',' || inquotes))
+			{
 				if (*temp == '"')
 				{
-					inquotes = true;
-					p = ++temp;
+					inquotes = false;
+					*temp = '\0';
 				}
-				while (*temp && (*temp != ',' || inquotes))
-				{
-					if (*temp == '"')
-					{
-						inquotes = false;
-						*temp = '\0';
-					}
-					temp++;
-				}
-				*temp++ = '\0';
-				fields.push_back(p);
-				p = temp;
+				temp++;
 			}
+			*temp++ = '\0';
+			fields.push_back(p);
+			p = temp;
+		}
 
-			// make sure we have enough fields on this line, otherwise we ignore it
-			if (fields.size() < 11)
+		// make sure we have enough fields on this line, otherwise we ignore it
+		if (fields.size() < 11)
+			continue;
+
+		// put the fields into some meaningful variable names
+		std::string action, srcname, dstname, effect, result, ph, result2;
+		unsigned long long srcguid, dstguid;
+		unsigned int srcflags, dstflags, amount;
+		action = fields[0];
+		sscanf(fields[1], "%llx", &srcguid);
+		srcname = fields[2];
+		sscanf(fields[3], "%x", &srcflags);
+		sscanf(fields[4], "%llx", &dstguid);
+		dstname = fields[5];
+		sscanf(fields[6], "%x", &dstflags);
+		result = fields[7];
+		effect = fields[8];
+		ph = fields[9];
+		result2 = fields[10];
+		amount = atol(result2.c_str());
+
+		// log item must be one of these types (this list may change)
+		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
+		{
+			// if we're filtering on source, check for a match
+			if (source.length() > 0 && srcname.find(source) == std::string::npos)
 				continue;
 
-			// put the fields into some meaningful variable names
-			std::string action, srcname, dstname, effect, result, ph, result2;
-			unsigned long long srcguid, dstguid;
-			unsigned int srcflags, dstflags, amount;
-			action = fields[0];
-			sscanf(fields[1], "%llx", &srcguid);
-			srcname = fields[2];
-			sscanf(fields[3], "%x", &srcflags);
-			sscanf(fields[4], "%llx", &dstguid);
-			dstname = fields[5];
-			sscanf(fields[6], "%x", &dstflags);
-			result = fields[7];
-			effect = fields[8];
-			ph = fields[9];
-			result2 = fields[10];
-			amount = atol(result2.c_str());
+			// if we're filtering on destination, check for a match
+			if (destination.length() > 0 && dstname.find(destination) == std::string::npos)
+				continue;
 
-			// log item must be one of these types (this list may change)
-			if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
+			// we only track things which have a source and a destination	
+			if (srcname != "nil" && dstname != "nil")
 			{
-				// if we're filtering on source, check for a match
-				if (source.length() > 0 && srcname.find(source) == std::string::npos)
-					continue;
-
-				// if we're filtering on destination, check for a match
-				if (destination.length() > 0 && dstname.find(destination) == std::string::npos)
-					continue;
-
-				// we only track things which have a source and a destination	
-				if (srcname != "nil" && dstname != "nil")
+				// fixup for swing damage, since format is different
+				if (action == SWING_DAMAGE)
 				{
-					// fixup for swing damage, since format is different
-					if (action == SWING_DAMAGE)
-					{
-						effect = "Swing";
-						amount = atol(result.c_str());
-					}
+					effect = "Swing";
+					amount = atol(result.c_str());
+				}
 
-					// get or create the current source by id
-					sourcestats_ptr cursource = sources[srcguid];
-					if (cursource == NULL)
-					{
-						cursource = sourcestats_ptr(new sourcestats(srcguid, srcname));
-						sources[srcguid] = cursource;
-					}
+				// get or create the current source by id
+				sourcestats_ptr cursource = sources[srcguid];
+				if (cursource == NULL)
+				{
+					cursource = sourcestats_ptr(new sourcestats(srcguid, srcname));
+					sources[srcguid] = cursource;
+				}
 
-					// add to overall damage or healing stats at the source level
-					if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
-						cursource->addtodamage(amount);
-					else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
-						cursource->addtohealing(amount);
+				// add to overall damage or healing stats at the source level
+				if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
+					cursource->addtodamage(amount);
+				else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
+					cursource->addtohealing(amount);
 
-					// get or create the current destination by id
-					destinationmap& destinations = cursource->getdestinations();
-					destinationstats_ptr curdestination = destinations[dstguid];
-					if (curdestination == NULL)
-					{
-						// if this is a player character, we set the flag
-						curdestination = destinationstats_ptr(new destinationstats(dstguid, dstname));
-						if ((dstguid & 0x00f0000000000000LL) == 0)
-							curdestination->setisplayer();
-						destinations[dstguid] = curdestination;
-					}
+				// get or create the current destination by id
+				destinationmap& destinations = cursource->getdestinations();
+				destinationstats_ptr curdestination = destinations[dstguid];
+				if (curdestination == NULL)
+				{
+					// if this is a player character, we set the flag
+					curdestination = destinationstats_ptr(new destinationstats(dstguid, dstname));
+					if ((dstguid & 0x00f0000000000000LL) == 0)
+						curdestination->setisplayer();
+					destinations[dstguid] = curdestination;
+				}
 
-					// add to overall damage or healing stats at the destination level
-					if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
-						curdestination->addtodamage(amount);
-					else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
-						curdestination->addtohealing(amount);
+				// add to overall damage or healing stats at the destination level
+				if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
+					curdestination->addtodamage(amount);
+				else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
+					curdestination->addtohealing(amount);
 
-					// get the current attack type
-					attackstats_ptr curattack;
-					attackvector& attacks = curdestination->getattacks();
-					attackiter iter3 = attacks.begin();
-					while (iter3 != attacks.end())
+				// get the current attack type
+				attackstats_ptr curattack;
+				attackvector& attacks = curdestination->getattacks();
+				attackiter iter3 = attacks.begin();
+				while (iter3 != attacks.end())
+				{
+					attackstats_ptr tmp = *iter3++;
+					if (tmp->getname() == effect)
 					{
-						attackstats_ptr tmp = *iter3++;
-						if (tmp->getname() == effect)
-						{
-							curattack = tmp;
-							break;
-						}
-					}
-
-					// this attack type doesn't exist yet for the destination target, create it
-					if (!curattack)
-					{
-						curattack = attackstats_ptr(new attackstats(effect));
-						curdestination->addattack(curattack);
-					}
-
-					// update the individual healing or damage stat
-					if (action == SPELL_DAMAGE)
-					{
-						curattack->addspelldamage(amount);
-					}
-					else if (action == SPELL_PERIODIC_DAMAGE)
-					{
-						curattack->addspellperiodicdamage(amount);
-					}
-					else if (action == SPELL_HEAL)
-					{
-						curattack->addspellheal(amount);
-					}
-					else if (action == SPELL_PERIODIC_HEAL)
-					{
-						curattack->addspellperiodicheal(amount);
-					}
-					else if (action == RANGE_DAMAGE)
-					{
-						curattack->addrangedamage(amount);
-					}
-					else if (action == SWING_DAMAGE)
-					{
-						curattack->addswingdamage(amount);
+						curattack = tmp;
+						break;
 					}
 				}
 
-				// this is the actual # of lines we processed
-				lineparsedcount++;
+				// this attack type doesn't exist yet for the destination target, create it
+				if (!curattack)
+				{
+					curattack = attackstats_ptr(new attackstats(effect));
+					curdestination->addattack(curattack);
+				}
+
+				// update the individual healing or damage stat
+				if (action == SPELL_DAMAGE)
+				{
+					curattack->addspelldamage(amount);
+				}
+				else if (action == SPELL_PERIODIC_DAMAGE)
+				{
+					curattack->addspellperiodicdamage(amount);
+				}
+				else if (action == SPELL_HEAL)
+				{
+					curattack->addspellheal(amount);
+				}
+				else if (action == SPELL_PERIODIC_HEAL)
+				{
+					curattack->addspellperiodicheal(amount);
+				}
+				else if (action == RANGE_DAMAGE)
+				{
+					curattack->addrangedamage(amount);
+				}
+				else if (action == SWING_DAMAGE)
+				{
+					curattack->addswingdamage(amount);
+				}
 			}
+
+			// this is the actual # of lines we processed
+			lineparsedcount++;
 		}
 	}
 
@@ -480,38 +495,54 @@ int main(int argc, char* argv[])
 	//strftime(buf, 256, "%c", &end);
 	//std::cout << "Time ended: " << buf << std::endl;
 
-	// generate the map data
+	// here, we try to make an intelligent decision about what kind of chart would be useful
 	std::string damagedata, damagelabel;
 	std::string healingdata, healinglabel;
+	std::vector<sourcestats_ptr> damage_vec;
+	std::vector<sourcestats_ptr> healing_vec;
 	for (sourceiter iter = sources.begin(); iter != sources.end(); iter++)
 	{
 		const sourcestats_ptr tmp = iter->second;
-		if ((tmp->getid() & 0x00f0000000000000LL) == 0)
-		{
-			char buf[256], buf2[256];
-			if (tmp->gettotaldamage() > 0)
-			{
-				if (damagedata.size() == 0)
-					sprintf(buf, "%0.1f", tmp->gettotaldamage() * 100 / (double) globaldamage);
-				else
-					sprintf(buf, ",%0.1f", tmp->gettotaldamage() * 100 / (double) globaldamage);
-				damagedata += buf;
-				sprintf(buf, "%0.1f", tmp->gettotaldamage() * 100 / (double) globaldamage);
-				if (damagelabel.size() == 0)
-					sprintf(buf2, "%s+(%s%%)", tmp->getname().c_str(), buf);
-				else
-					sprintf(buf2, "|%s+(%s%%)", tmp->getname().c_str(), buf);
-				damagelabel += buf2;
-			}
-			if (tmp->gettotalhealing() > 0)
-			{
-			}
-		}
+		if (tmp->gettotaldamage() > 0)
+			damage_vec.push_back(iter->second);
+		if (tmp->gettotalhealing() > 0)
+			healing_vec.push_back(iter->second);
+	}
+	std::sort(damage_vec.begin(), damage_vec.end(), compare_damage());
+	std::vector<sourcestats_ptr>::const_iterator p = damage_vec.begin();
+	while (p != damage_vec.end())
+	{
+		const sourcestats_ptr tmp = *p;
+		char buf[256], buf2[256];
+		if (damagedata.size() == 0)
+			sprintf(buf, "%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
+		else
+			sprintf(buf, ",%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
+		damagedata += buf;
+		sprintf(buf, "%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
+		if (damagelabel.size() == 0)
+			sprintf(buf2, "%s+(%s%%)", tmp->getname().c_str(), buf);
+		else
+			sprintf(buf2, "|%s+(%s%%)", tmp->getname().c_str(), buf);
+		damagelabel += buf2;
+		p++;
+	}
+	std::sort(healing_vec.begin(), healing_vec.end(), compare_healing());
+	p = healing_vec.begin();
+	while (p != healing_vec.end())
+	{
+		const sourcestats_ptr temp = *p;
+		p++;
 	}
 
 	// for a visual, we dump out a URI for a google chart
-	std::string damagechart = "http://chart.apis.google.com/chart?chtt=Damage&chts=FF0000&cht=p&chs=640x360&chd=t:" + damagedata + "&chl=" + damagelabel;
-	std::string healingchart = "http://chart.apis.google.com/chart?chtt=Healing&chts=0000FF&cht=p&chs=640x360&chd=t:";
+	std::string damagechart = "http://chart.apis.google.com/chart?";
+	if (destination.length() == 0)
+		damagechart += "chtt=Total+Damage";
+	else
+		damagechart += "chtt=Damage+-+" + destination;
+	damagechart += "&chts=FF0000&cht=p&chs=640x440&chd=t:" + damagedata + "&chl=" + damagelabel;
+	std::string healingchart = "http://chart.apis.google.com/chart?chtt=Healing&chts=0000FF&cht=p&chs=640x440&chd=t:";
 	std::cout << "Use the following URI for a damage chart:" << std::endl << damagechart << std::endl;
 
 	return 0;
