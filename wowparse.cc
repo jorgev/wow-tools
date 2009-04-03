@@ -262,6 +262,12 @@ int main(int argc, char* argv[])
 	long lineparsedcount = 0;
 	char line[LINESIZE];
 	sourcemap sources;
+	time_t rawtime;
+	struct tm* timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	char year[8];
+	strftime(year, 8, "%Y-", timeinfo);
 	while (ifs.getline(line, LINESIZE))
 	{
 		// bump line count
@@ -339,9 +345,7 @@ int main(int argc, char* argv[])
 				if (slash != NULL)
 					*slash = '-';
 				dt::ptime now = dt::second_clock::local_time();
-				//char year[8];
-				//sprintf(year, "%d", now.year());
-				dt::ptime t = dt::time_from_string(std::string("2008-") + line);
+				dt::ptime t = dt::time_from_string(std::string(year) + line);
 
 				// fixup for swing damage, since format is different
 				if (action == SWING_DAMAGE)
@@ -375,6 +379,9 @@ int main(int argc, char* argv[])
 						curdestination->setisplayer();
 					destinations[dstguid] = curdestination;
 				}
+
+				// update timestamp for dps calculations
+				curdestination->addtimestamp(t);
 
 				// add to overall damage or healing stats at the destination level
 				if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
@@ -463,8 +470,9 @@ int main(int argc, char* argv[])
 			std::cout << "\t" << desttmp->getname() << " (0x" << std::hex << std::setw(16) << std::setfill('0') << desttmp->getid() << "): " << std::dec;
 			totaldamage = desttmp->gettotaldamage();
 			totalhealing = desttmp->gettotalhealing();
+			double secs = desttmp->gettotaltime().total_milliseconds() / 1000.0;
 			if (totaldamage > 0)
-				std::cout << totaldamage << " dmg taken";
+				std::cout << totaldamage << " dmg taken over " << secs << " seconds (DPS " << totaldamage / secs << ")";
 			if (totalhealing > 0)
 				std::cout << totalhealing << " healing received";
 			std::cout << std::endl;
@@ -511,12 +519,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	// some info
 	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed." << std::endl;
-	//char buf[256];
-	//strftime(buf, 256, "%c", &start);
-	//std::cout << "Time started: " << buf << std::endl;
-	//strftime(buf, 256, "%c", &end);
-	//std::cout << "Time ended: " << buf << std::endl;
 
 	// build arrays for damage and healing data
 	std::vector<sourcestats_ptr> damage_vec;
