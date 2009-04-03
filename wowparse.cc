@@ -7,11 +7,13 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <boost/date_time.hpp>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 #include <time.h>
 
 namespace po = boost::program_options;
+namespace dt = boost::posix_time;
 
 const char* SPELL_DAMAGE = "SPELL_DAMAGE";
 const char* SPELL_PERIODIC_DAMAGE = "SPELL_PERIODIC_DAMAGE";
@@ -111,10 +113,11 @@ public:
 	void setisplayer() { isplayer = true; }
 	unsigned long gettotaldamage() const { return totaldamage; }
 	unsigned long gettotalhealing() const { return totalhealing; }
+	dt::time_duration gettotaltime() const { return (end - start); }
 	bool getisplayer() const { return isplayer; }
 	attackvector& getattacks() { return attacks; }
 	void addattack(attackstats_ptr attack) { attacks.push_back(attack); }
-	void addtimestamp(struct tm timestamp);
+	void addtimestamp(dt::ptime timestamp);
 
 private:
 	unsigned long long id;
@@ -123,7 +126,8 @@ private:
 	unsigned long totalhealing;
 	bool isplayer;
 	attackvector attacks;
-	struct tm start, end;
+	dt::ptime start, end;
+	bool start_time_set;
 };
 
 destinationstats::destinationstats(unsigned long long destinationid, std::string& destinationname)
@@ -133,10 +137,22 @@ destinationstats::destinationstats(unsigned long long destinationid, std::string
 	totaldamage = 0;
 	totalhealing = 0;
 	isplayer = false;
+	start_time_set = false;
 }
 
-void destinationstats::addtimestamp(struct tm timestamp)
+void destinationstats::addtimestamp(dt::ptime timestamp)
 {
+	if (start_time_set)
+	{
+		// just bump the end time
+		end = timestamp;
+	}
+	else
+	{
+		// set the start time
+		start = timestamp;
+		start_time_set = true;
+	}
 }
 
 typedef boost::shared_ptr<destinationstats> destinationstats_ptr;
@@ -246,7 +262,6 @@ int main(int argc, char* argv[])
 	long lineparsedcount = 0;
 	char line[LINESIZE];
 	sourcemap sources;
-//	struct tm start, end;
 	while (ifs.getline(line, LINESIZE))
 	{
 		// bump line count
@@ -257,10 +272,9 @@ int main(int argc, char* argv[])
 		if (p == NULL)
 			continue;
 
-//		strptime(line, "%m/%d %H:%M:%S", linecount == 0 ? &start : &end);
-
 		// parse the combat data...comma-separated with occasional double-quotes surrounding some fields
 		std::vector<const char*> fields;
+		*p = 0; // null terminate so we can read time later
 		p += 2;
 		char* temp = p;
 		while (*temp)
@@ -320,6 +334,15 @@ int main(int argc, char* argv[])
 			// we only track things which have a source and a destination	
 			if (srcname != "nil" && dstname != "nil")
 			{
+				// time conversion is probably expensive, so we defer it to here...log doesn't give us years, so we need to fix it
+				char* slash =  strchr(line, '/');
+				if (slash != NULL)
+					*slash = '-';
+				dt::ptime now = dt::second_clock::local_time();
+				//char year[8];
+				//sprintf(year, "%d", now.year());
+				dt::ptime t = dt::time_from_string(std::string("2008-") + line);
+
 				// fixup for swing damage, since format is different
 				if (action == SWING_DAMAGE)
 				{
@@ -495,9 +518,7 @@ int main(int argc, char* argv[])
 	//strftime(buf, 256, "%c", &end);
 	//std::cout << "Time ended: " << buf << std::endl;
 
-	// here, we try to make an intelligent decision about what kind of chart would be useful
-	std::string damagedata, damagelabel;
-	std::string healingdata, healinglabel;
+	// build arrays for damage and healing data
 	std::vector<sourcestats_ptr> damage_vec;
 	std::vector<sourcestats_ptr> healing_vec;
 	for (sourceiter iter = sources.begin(); iter != sources.end(); iter++)
@@ -508,10 +529,16 @@ int main(int argc, char* argv[])
 		if (tmp->gettotalhealing() > 0 && (tmp->getid() & 0x00f0000000000000LL) == 0) // only care about player healing
 			healing_vec.push_back(iter->second);
 	}
+
+	// sort damage so chart is easy to read
 	std::sort(damage_vec.begin(), damage_vec.end(), compare_damage());
+
+	// loop through damage sources
 	std::vector<sourcestats_ptr>::const_iterator p = damage_vec.begin();
+	std::string damagedata, damagelabel;
 	while (p != damage_vec.end())
 	{
+		// build damage chart info
 		const sourcestats_ptr tmp = *p;
 		char buf[256], buf2[256];
 		if (damagedata.size() == 0)
@@ -521,16 +548,72 @@ int main(int argc, char* argv[])
 		damagedata += buf;
 		sprintf(buf, "%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
 		if (damagelabel.size() == 0)
-			sprintf(buf2, "%s+(%s%%)", tmp->getname().c_str(), buf);
+			sprintf(buf2, "%s%%20(%s%%)", tmp->getname().c_str(), buf);
 		else
-			sprintf(buf2, "|%s+(%s%%)", tmp->getname().c_str(), buf);
+			sprintf(buf2, "|%s%%20(%s%%)", tmp->getname().c_str(), buf);
 		damagelabel += buf2;
 		p++;
 	}
+
+	// if only one source, we'll throw in a chart for damage sources
+	std::string dmgsrcdata, dmgsrclabel;
+	std::map<std::string, unsigned long> dmgsrcmap;
+	if (damage_vec.size() == 1)
+	{
+		p = damage_vec.begin();
+		const sourcestats_ptr tmp = *p;
+		destinationmap& destinations = tmp->getdestinations();
+		unsigned long totaldamage = 0;
+		for (destinationiter iter = destinations.begin(); iter != destinations.end(); iter++)
+		{
+			const destinationstats_ptr desttmp = iter->second;
+			attackvector& attacks = desttmp->getattacks();
+			attackiter iter2 = attacks.begin();
+			while (iter2 != attacks.end())
+			{
+				const attackstats_ptr atktmp = *iter2++;
+				unsigned long damage = atktmp->gettotaldamage();
+				dmgsrcmap[atktmp->getname()] += damage;
+				totaldamage += damage;
+			}
+		}
+		for (std::map<std::string, unsigned long>::const_iterator dmgsrciter = dmgsrcmap.begin(); dmgsrciter != dmgsrcmap.end(); dmgsrciter++)
+		{
+			char buf[256], buf2[256];
+			if (dmgsrcdata.size() == 0)
+				sprintf(buf, "%0.2f", dmgsrciter->second * 100 / (double) totaldamage);
+			else
+				sprintf(buf, ",%0.2f", dmgsrciter->second * 100 / (double) totaldamage);
+			dmgsrcdata += buf;
+			sprintf(buf, "%0.2f", dmgsrciter->second * 100 / (double) totaldamage);
+			if (dmgsrclabel.size() == 0)
+				sprintf(buf2, "%s%%20(%s%%)", dmgsrciter->first.c_str(), buf);
+			else
+				sprintf(buf2, "|%s%%20(%s%%)", dmgsrciter->first.c_str(), buf);
+			dmgsrclabel += buf2;
+		}
+		std::cout << "Use the following URI for a damage breakdown by effect:" << std::endl;
+		std::cout << "http://chart.apis.google.com/chart?chtt=Damage%20-%20" << tmp->getname() << "&chts=FF0000&cht=p&chs=680x400&chd=t:";
+		std::string labelfixup;
+		for (std::string::const_iterator striter = dmgsrclabel.begin(); striter != dmgsrclabel.end(); striter++)
+		{
+			if (*striter == ' ')
+				labelfixup += "%20";
+			else
+				labelfixup += *striter;
+		}
+		std::cout << dmgsrcdata << "&chl=" << labelfixup << std::endl;
+	}
+
+	// sort healing info
 	std::sort(healing_vec.begin(), healing_vec.end(), compare_healing());
+
+	// loop through healing sources
 	p = healing_vec.begin();
+	std::string healingdata, healinglabel;
 	while (p != healing_vec.end())
 	{
+		// build healing chart info
 		const sourcestats_ptr tmp = *p;
 		char buf[256], buf2[256];
 		if (healingdata.size() == 0)
@@ -540,9 +623,9 @@ int main(int argc, char* argv[])
 		healingdata += buf;
 		sprintf(buf, "%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
 		if (healinglabel.size() == 0)
-			sprintf(buf2, "%s+(%s%%)", tmp->getname().c_str(), buf);
+			sprintf(buf2, "%s%%20(%s%%)", tmp->getname().c_str(), buf);
 		else
-			sprintf(buf2, "|%s+(%s%%)", tmp->getname().c_str(), buf);
+			sprintf(buf2, "|%s%%20(%s%%)", tmp->getname().c_str(), buf);
 		healinglabel += buf2;
 		p++;
 	}
@@ -552,21 +635,21 @@ int main(int argc, char* argv[])
 	{
 		std::string damagechart = "http://chart.apis.google.com/chart?";
 		if (destination.length() == 0)
-			damagechart += "chtt=Total+Damage";
+			damagechart += "chtt=Total%20Damage";
 		else
-			damagechart += "chtt=Damage+-+" + destination;
-		damagechart += "&chts=FF0000&cht=p&chs=640x440&chd=t:" + damagedata + "&chl=" + damagelabel;
-		std::cout << "Use the following URI for a damage chart:" << std::endl << damagechart << std::endl;
+			damagechart += "chtt=Damage%20-%20" + destination;
+		damagechart += "&chts=FF0000&cht=p&chs=680x400&chd=t:" + damagedata + "&chl=" + damagelabel;
+		std::cout << "Use the following URI for an overall damage chart:" << std::endl << damagechart << std::endl;
 	}
 	if (healing_vec.size() > 0)
 	{
 		std::string healingchart = "http://chart.apis.google.com/chart?";
 		if (destination.length() == 0)
-			healingchart += "chtt=Total+Healing";
+			healingchart += "chtt=Total%20Healing";
 		else
-			healingchart += "chtt=Healing+-+" + destination;
-		healingchart += "&chts=0000FF&cht=p&chs=640x440&chd=t:" + healingdata + "&chl=" + healinglabel;
-		std::cout << "Use the following URI for a healing chart:" << std::endl << healingchart << std::endl;
+			healingchart += "chtt=Healing%20-%20" + destination;
+		healingchart += "&chts=0000FF&cht=p&chs=680x400&chd=t:" + healingdata + "&chl=" + healinglabel;
+		std::cout << "Use the following URI for an overall healing chart:" << std::endl << healingchart << std::endl;
 	}
 
 	return 0;
