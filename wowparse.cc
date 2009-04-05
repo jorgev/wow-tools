@@ -330,11 +330,11 @@ int main(int argc, char* argv[])
 		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 		{
 			// if we're filtering on source, check for a match
-			if (source.length() > 0 && srcname.find(source) == std::string::npos)
+			if (source.length() > 0 && srcname != source)
 				continue;
 
 			// if we're filtering on destination, check for a match
-			if (destination.length() > 0 && dstname.find(destination) == std::string::npos)
+			if (destination.length() > 0 && dstname != destination)
 				continue;
 
 			// we only track things which have a source and a destination	
@@ -472,7 +472,7 @@ int main(int argc, char* argv[])
 			totalhealing = desttmp->gettotalhealing();
 			double secs = desttmp->gettotaltime().total_milliseconds() / 1000.0;
 			if (totaldamage > 0)
-				std::cout << totaldamage << " dmg taken over " << secs << " seconds (DPS " << totaldamage / secs << ")";
+				std::cout << totaldamage << " dmg taken over " << secs << " seconds (" << totaldamage / secs << " DPS)";
 			if (totalhealing > 0)
 				std::cout << totalhealing << " healing received";
 			std::cout << std::endl;
