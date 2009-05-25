@@ -18,8 +18,9 @@ tracked_fields = damage_fields + healing_fields
 class effect_stats:
 	def __init__(self, name):
 		self.name = name
-		self.amount = 0
-		self.casts = 0
+		self.total_healing = 0
+		self.total_damage = 0
+		self.hits = 0
 		self.ticks = 0
 
 class destination_stats:
@@ -28,9 +29,8 @@ class destination_stats:
 		self.name = name
 		self.total_damage = 0
 		self.total_healing = 0
-		self.start_time = 0
-		self.end_time = 0
-		self.duration = 0
+		self.start_time = datetime.min
+		self.end_time = datetime.min
 		self.effects = {}
 
 class source_stats:
@@ -68,8 +68,9 @@ def main():
 	parsed_line_count = 0
 	hex_regex = re.compile('^0x[a-fA-F0-9]+$')
 	dec_regex = re.compile('^\d+$')
-	print "Opening " + filename + "..."
+	ts_regex = re.compile(r'^(\d+)/(\d+) (\d+):(\d+):(\d+)\.(\d+)')
 	file = open(filename, 'r')
+	print "Parsing " + filename + "..."
 	while True:
 		line = file.readline()
 		if not line:
@@ -123,6 +124,8 @@ def main():
 		parsed_line_count += 1
 		
 		# get the timestamp
+		m = ts_regex.match(date_time)
+		timestamp = datetime(2009, int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)) * 1000)
 		
 		# add or get source
 		if sources.has_key(combat_fields[1]):
@@ -137,7 +140,7 @@ def main():
 				source.total_damage += combat_fields[7]
 			else:
 				source.total_damage += combat_fields[10]
-		if combat_fields[0] in healing_fields:
+		elif combat_fields[0] in healing_fields:
 			source.total_healing += combat_fields[10]
 		
 		# add or get destination
@@ -154,8 +157,13 @@ def main():
 				destination.total_damage += combat_fields[7]
 			else:
 				destination.total_damage += combat_fields[10]
-		if combat_fields[0] in healing_fields:
+		elif combat_fields[0] in healing_fields:
 			destination.total_healing += combat_fields[10]
+		
+		# destination gets the timestamps
+		if destination.start_time == datetime.min:
+			destination.start_time = timestamp
+		destination.end_time = timestamp
 		
 		# add or get effect
 		if combat_fields[0] == 'SWING_DAMAGE':
@@ -170,10 +178,21 @@ def main():
 			effects[effect_name] = effect
 			
 		# update effect stats
-		if combat_fields[0] == 'SWING_DAMAGE':
-			effect.amount += combat_fields[7]
-		else:
-			effect.amount += combat_fields[10]
+		if combat_fields[0] in damage_fields:
+			if combat_fields[0] == 'SWING_DAMAGE':
+				effect.total_damage += combat_fields[7]
+			else:
+				effect.total_damage += combat_fields[10]
+			if combat_fields[0] == 'SPELL_PERIODIC_DAMAGE':
+				effect.ticks += 1
+			else:
+				effect.hits += 1
+		elif combat_fields[0] in healing_fields:
+			effect.total_healing += combat_fields[10]
+			if combat_fields[0] == 'SPELL_PERIODIC_HEAL':
+				effect.ticks += 1
+			else:
+				effect.hits += 1
 		
 	# tell the user how many lines we actually read
 	print "%d total lines read, %d lines parsed" % (line_count, parsed_line_count)
@@ -184,13 +203,18 @@ def main():
 		print "%s (0x%016X): %d damage, %d healing" % (source.name, source.id, source.total_damage, source.total_healing)
 		for destination_id in source.destinations.keys():
 			destination = source.destinations[destination_id]
+			duration = destination.end_time - destination.start_time
+			duration = duration.seconds + float(duration.microseconds) / 1000000;
 			if destination.total_damage > 0:
-				print "\t%s (0x%016X): %d damage received" % (destination.name, destination.id, destination.total_damage)
+				print "\t%s (0x%016X): %d damage received over %.3f (%.2f DPS)" % (destination.name, destination.id, destination.total_damage, duration, destination.total_damage / duration if duration > 0.0 else destination.total_damage)
 			else:
 				print "\t%s (0x%016X): %d healing received" % (destination.name, destination.id, destination.total_healing)
 			for effect_id in destination.effects.keys():
 				effect = destination.effects[effect_id]
-				print "\t\t%s: %d" % (effect.name, effect.amount)
+				if effect.total_damage > 0:
+					print "\t\t%s: %d damage, %d hits, %d ticks" % (effect.name, effect.total_damage, effect.hits, effect.ticks)
+				if effect.total_healing > 0:
+					print "\t\t%s: %d healing, %d hits, %d ticks" % (effect.name, effect.total_healing, effect.hits, effect.ticks)
 
 if __name__ == '__main__':
 	main()
