@@ -70,7 +70,8 @@ def main():
 	dec_regex = re.compile('^\d+$')
 	ts_regex = re.compile(r'^(\d+)/(\d+) (\d+):(\d+):(\d+)\.(\d+)')
 	file = open(filename, 'r')
-	print "Parsing " + filename + "..."
+	sys.stdout.write("Parsing " + filename)
+	sys.stdout.flush()
 	while True:
 		line = file.readline()
 		if not line:
@@ -122,6 +123,9 @@ def main():
 		
 		# actual number of lines parsed
 		parsed_line_count += 1
+		if parsed_line_count % 100 == 0:
+			sys.stdout.write('.')
+			sys.stdout.flush()
 		
 		# get the timestamp
 		m = ts_regex.match(date_time)
@@ -195,12 +199,18 @@ def main():
 				effect.hits += 1
 		
 	# tell the user how many lines we actually read
+	print
 	print "%d total lines read, %d lines parsed" % (line_count, parsed_line_count)
 	
 	# dump the stats out
 	for source_id in sources.keys():
 		source = sources[source_id]
-		print "%s (0x%016X): %d damage, %d healing" % (source.name, source.id, source.total_damage, source.total_healing)
+		if source.total_damage > 0 and source.total_healing > 0:
+			print "%s (0x%016X): %d damage, %d healing" % (source.name, source.id, source.total_damage, source.total_healing)
+		elif source.total_damage > 0:
+			print "%s (0x%016X): %d damage" % (source.name, source.id, source.total_damage)
+		elif source.total_healing > 0:
+			print "%s (0x%016X): %d healing" % (source.name, source.id, source.total_healing)
 		for destination_id in source.destinations.keys():
 			destination = source.destinations[destination_id]
 			duration = destination.end_time - destination.start_time
@@ -212,9 +222,19 @@ def main():
 			for effect_id in destination.effects.keys():
 				effect = destination.effects[effect_id]
 				if effect.total_damage > 0:
-					print "\t\t%s: %d damage, %d hits, %d ticks" % (effect.name, effect.total_damage, effect.hits, effect.ticks)
+					if effect.hits > 0 and effect.ticks > 0:
+						print "\t\t%s: %d damage, %d hits, %d ticks" % (effect.name, effect.total_damage, effect.hits, effect.ticks)
+					elif effect.hits > 0:
+						print "\t\t%s: %d damage, %d hits, %.1f avg" % (effect.name, effect.total_damage, effect.hits, effect.total_damage / float(effect.hits))
+					elif effect.ticks > 0:
+						print "\t\t%s: %d damage, %d ticks, %.1f avg" % (effect.name, effect.total_damage, effect.ticks, effect.total_damage / float(effect.ticks))
 				if effect.total_healing > 0:
-					print "\t\t%s: %d healing, %d hits, %d ticks" % (effect.name, effect.total_healing, effect.hits, effect.ticks)
+					if effect.hits > 0 and effect.ticks > 0:
+						print "\t\t%s: %d healing, %d hits, %d ticks" % (effect.name, effect.total_damage, effect.hits, effect.ticks)
+					elif effect.hits > 0:
+						print "\t\t%s: %d healing, %d hits, %.1f avg" % (effect.name, effect.total_damage, effect.hits, effect.total_damage / float(effect.hits))
+					elif effect.ticks > 0:
+						print "\t\t%s: %d healing, %d ticks, %.1f avg" % (effect.name, effect.total_damage, effect.ticks, effect.total_damage / float(effect.ticks))
 
 if __name__ == '__main__':
 	main()
