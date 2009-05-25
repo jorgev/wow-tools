@@ -472,7 +472,7 @@ int main(int argc, char* argv[])
 			totalhealing = desttmp->gettotalhealing();
 			double secs = desttmp->gettotaltime().total_milliseconds() / 1000.0;
 			if (totaldamage > 0)
-				std::cout << totaldamage << " dmg taken over " << secs << " seconds (" << totaldamage / secs << " DPS)";
+				std::cout << totaldamage << " dmg taken over " << secs << " seconds (" << totaldamage / secs << " DPS) ";
 			if (totalhealing > 0)
 				std::cout << totalhealing << " healing received";
 			std::cout << std::endl;
