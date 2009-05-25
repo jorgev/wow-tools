@@ -10,10 +10,12 @@ import sys
 import os
 import re
 from datetime import datetime
+from datetime import date
 
 damage_fields = ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE', 'SWING_DAMAGE', 'RANGE_DAMAGE']
 healing_fields = ['SPELL_HEAL', 'SPELL_PERIODIC_HEAL']
-tracked_fields = damage_fields + healing_fields
+other_fields = ['SPELL_MISSED']
+tracked_fields = damage_fields + healing_fields + other_fields
 
 class effect_stats:
 	def __init__(self, name):
@@ -22,6 +24,8 @@ class effect_stats:
 		self.total_damage = 0
 		self.hits = 0
 		self.ticks = 0
+		self.resists = 0
+		self.misses = 0
 
 class destination_stats:
 	def __init__(self, id, name):
@@ -45,6 +49,7 @@ def main():
 	# command line args
 	args = sys.argv[1:]
 	help = False
+	player_only = False
 	filename = "WoWCombatLog.txt"
 	srcname = dstname = ""
 	for (index, arg) in enumerate(args):
@@ -56,6 +61,8 @@ def main():
 			srcname = args[index + 1]
 		elif arg == '-d':
 			dstname = args[index + 1]
+		elif arg == '-p':
+			player_only = True
 	
 	# if user just wants help, print usage and then exit
 	if help:
@@ -69,6 +76,7 @@ def main():
 	hex_regex = re.compile('^0x[a-fA-F0-9]+$')
 	dec_regex = re.compile('^\d+$')
 	ts_regex = re.compile(r'^(\d+)/(\d+) (\d+):(\d+):(\d+)\.(\d+)')
+	current_year = date.today().year
 	file = open(filename, 'r')
 	sys.stdout.write("Parsing " + filename)
 	sys.stdout.flush()
@@ -107,6 +115,13 @@ def main():
 				data = ""
 			else:
 				data += char
+		# add last field
+		if hex_regex.match(data):
+			combat_fields.append(long(data, 16))
+		elif dec_regex.match(data):
+			combat_fields.append(int(data))
+		else:
+			combat_fields.append(data)
 
 		# all the stuff we're interested in requires 11 fields or greater
 		if len(combat_fields) < 11:
@@ -123,13 +138,13 @@ def main():
 		# check for source and/or destination match
 		if (srcname and srcname != combat_fields[2]) or (dstname and dstname != combat_fields[5]):
 			continue
-		
+			
 		# actual number of lines parsed
 		parsed_line_count += 1
 		
-		# get the timestamp
+		# get the timestamp (NOTE: year is not supplied in the combat log, this will cause problems if log file crosses a year boundary)
 		m = ts_regex.match(date_time)
-		timestamp = datetime(2009, int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)) * 1000)
+		timestamp = datetime(current_year, int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)) * 1000)
 		
 		# add or get source
 		if sources.has_key(combat_fields[1]):
@@ -182,7 +197,9 @@ def main():
 			effects[effect_name] = effect
 			
 		# update effect stats
-		if combat_fields[0] in damage_fields:
+		if combat_fields[0] == 'SPELL_MISSED':
+			effect.misses += 1
+		elif combat_fields[0] in damage_fields:
 			if combat_fields[0] == 'SWING_DAMAGE':
 				effect.total_damage += combat_fields[7]
 			else:
@@ -199,8 +216,7 @@ def main():
 				effect.hits += 1
 		
 	# tell the user how many lines we actually read
-	print
-	print "%d total lines found, %d lines parsed" % (line_count, parsed_line_count)
+	print "\n%d total lines found, %d lines parsed" % (line_count, parsed_line_count)
 	
 	# dump the stats out
 	for source_id in sources.keys():
@@ -216,20 +232,20 @@ def main():
 			duration = destination.end_time - destination.start_time
 			duration = duration.seconds + float(duration.microseconds) / 1000000;
 			if destination.total_damage > 0 and destination.total_healing > 0:
-				print "\t%s (0x%016X): %d damage received over %.3f (%.2f DPS), %d healing received" % (destination.name, destination.id, destination.total_damage, duration, destination.total_damage / duration if duration > 0.0 else destination.total_damage, destination.total_healing)
+				print "\t%s (0x%016X): %d damage received over %.3f sec (%.2f DPS), %d healing received" % (destination.name, destination.id, destination.total_damage, duration, destination.total_damage / duration if duration > 0.0 else destination.total_damage, destination.total_healing)
 			elif destination.total_damage > 0:
-				print "\t%s (0x%016X): %d damage received over %.3f (%.2f DPS)" % (destination.name, destination.id, destination.total_damage, duration, destination.total_damage / duration if duration > 0.0 else destination.total_damage)
+				print "\t%s (0x%016X): %d damage received over %.3f sec (%.2f DPS)" % (destination.name, destination.id, destination.total_damage, duration, destination.total_damage / duration if duration > 0.0 else destination.total_damage)
 			elif destination.total_healing > 0:
 				print "\t%s (0x%016X): %d healing received" % (destination.name, destination.id, destination.total_healing)
 			for effect_id in destination.effects.keys():
 				effect = destination.effects[effect_id]
 				if effect.total_damage > 0:
 					if effect.hits > 0 and effect.ticks > 0:
-						print "\t\t%s: %d damage, %d hits, %d ticks" % (effect.name, effect.total_damage, effect.hits, effect.ticks)
+						print "\t\t%s: %d damage, %d hits, %d ticks, %d misses" % (effect.name, effect.total_damage, effect.hits, effect.ticks, effect.misses)
 					elif effect.hits > 0:
-						print "\t\t%s: %d damage, %d hits, %.1f avg" % (effect.name, effect.total_damage, effect.hits, effect.total_damage / float(effect.hits))
+						print "\t\t%s: %d damage, %d hits, %.1f avg, %d misses" % (effect.name, effect.total_damage, effect.hits, effect.total_damage / float(effect.hits), effect.misses)
 					elif effect.ticks > 0:
-						print "\t\t%s: %d damage, %d ticks, %.1f avg" % (effect.name, effect.total_damage, effect.ticks, effect.total_damage / float(effect.ticks))
+						print "\t\t%s: %d damage, %d ticks, %.1f avg, %d misses" % (effect.name, effect.total_damage, effect.ticks, effect.total_damage / float(effect.ticks), effect.misses)
 				if effect.total_healing > 0:
 					if effect.hits > 0 and effect.ticks > 0:
 						print "\t\t%s: %d healing, %d hits, %d ticks" % (effect.name, effect.total_healing, effect.hits, effect.ticks)
