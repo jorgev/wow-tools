@@ -184,7 +184,10 @@ def main():
 		print "%s (0x%016X): %d damage, %d healing" % (source.name, source.id, source.total_damage, source.total_healing)
 		for destination_id in source.destinations.keys():
 			destination = source.destinations[destination_id]
-			print "\t%s (0x%016X): %d damage received, %d healing received" % (destination.name, destination.id, destination.total_damage, destination.total_healing)
+			if destination.total_damage > 0:
+				print "\t%s (0x%016X): %d damage received" % (destination.name, destination.id, destination.total_damage)
+			else:
+				print "\t%s (0x%016X): %d healing received" % (destination.name, destination.id, destination.total_healing)
 			for effect_id in destination.effects.keys():
 				effect = destination.effects[effect_id]
 				print "\t\t%s: %d" % (effect.name, effect.amount)
