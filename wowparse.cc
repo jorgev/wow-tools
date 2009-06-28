@@ -268,6 +268,7 @@ int main(int argc, char* argv[])
 	timeinfo = localtime(&rawtime);
 	char year[8];
 	strftime(year, 8, "%Y-", timeinfo);
+	dt::ptime start = dt::microsec_clock::local_time();
 	while (ifs.getline(line, LINESIZE))
 	{
 		// bump line count
@@ -393,7 +394,8 @@ int main(int argc, char* argv[])
 				attackstats_ptr curattack;
 				attackvector& attacks = curdestination->getattacks();
 				attackiter iter3 = attacks.begin();
-				while (iter3 != attacks.end())
+				attackiter end = attacks.end();
+				while (iter3 != end)
 				{
 					attackstats_ptr tmp = *iter3++;
 					if (tmp->getname() == effect)
@@ -445,7 +447,8 @@ int main(int argc, char* argv[])
 	// dump the stats out
 	unsigned long globaldamage = 0;
 	unsigned long globalhealing = 0;
-	for (sourceiter iter = sources.begin(); iter != sources.end(); iter++)
+	sourceiter source_end = sources.end();
+	for (sourceiter iter = sources.begin(); iter != source_end; ++iter)
 	{
 		// iterate through each source
 		const sourcestats_ptr tmp = iter->second;
@@ -464,7 +467,8 @@ int main(int argc, char* argv[])
 
 		// for each source, iterate through all the destination targets
 		destinationmap& destinations = tmp->getdestinations();
-		for (destinationiter iter2 = destinations.begin(); iter2 != destinations.end(); iter2++)
+		destinationiter destination_end = destinations.end();
+		for (destinationiter iter2 = destinations.begin(); iter2 != destination_end; ++iter2)
 		{
 			const destinationstats_ptr desttmp = iter2->second;
 			std::cout << "\t" << desttmp->getname() << " (0x" << std::hex << std::setw(16) << std::setfill('0') << desttmp->getid() << "): " << std::dec;
@@ -480,7 +484,8 @@ int main(int argc, char* argv[])
 			// now we iterate through all the attack/healing types from source -> destination
 			attackvector& attacks = desttmp->getattacks();
 			attackiter iter3 = attacks.begin();
-			while (iter3 != attacks.end())
+			attackiter attack_end = attacks.end();
+			while (iter3 != attack_end)
 			{
 				const attackstats_ptr atktmp = *iter3++;
 				totaldamage = atktmp->gettotaldamage();
@@ -520,12 +525,15 @@ int main(int argc, char* argv[])
 	}
 
 	// some info
-	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed." << std::endl;
+	dt::ptime end = dt::microsec_clock::local_time();
+	dt::time_duration elapsed = end - start;
+	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed, elapsed time " << (elapsed.total_seconds() + (elapsed.total_milliseconds() / 1000.0)) << "s" << std::endl;
 
 	// build arrays for damage and healing data
 	std::vector<sourcestats_ptr> damage_vec;
 	std::vector<sourcestats_ptr> healing_vec;
-	for (sourceiter iter = sources.begin(); iter != sources.end(); iter++)
+	source_end = sources.end();
+	for (sourceiter iter = sources.begin(); iter != source_end; ++iter)
 	{
 		const sourcestats_ptr tmp = iter->second;
 		if (tmp->gettotaldamage() > 0)
