@@ -527,7 +527,7 @@ int main(int argc, char* argv[])
 	// some info
 	dt::ptime end = dt::microsec_clock::local_time();
 	dt::time_duration elapsed = end - start;
-	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed, elapsed time " << (elapsed.total_seconds() + (elapsed.total_milliseconds() / 1000.0)) << "s" << std::endl << std::endl;
+	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed, elapsed time " << (elapsed.total_seconds() + (elapsed.total_milliseconds() / 1000.0)) << "s" << std::endl;
 
 	// build arrays for damage and healing data
 	std::vector<sourcestats_ptr> damage_vec;
@@ -585,8 +585,11 @@ int main(int argc, char* argv[])
 			{
 				const attackstats_ptr atktmp = *iter2++;
 				unsigned long damage = atktmp->gettotaldamage();
-				dmgsrcmap[atktmp->getname()] += damage;
-				totaldamage += damage;
+				if (damage > 0)
+				{
+					dmgsrcmap[atktmp->getname()] += damage;
+					totaldamage += damage;
+				}
 			}
 		}
 		for (std::map<std::string, unsigned long>::const_iterator dmgsrciter = dmgsrcmap.begin(); dmgsrciter != dmgsrcmap.end(); dmgsrciter++)
@@ -604,7 +607,7 @@ int main(int argc, char* argv[])
 				sprintf(buf2, "|%s%%20(%s%%)", dmgsrciter->first.c_str(), buf);
 			dmgsrclabel += buf2;
 		}
-		std::cout << "Use the following URI for a damage breakdown by effect:" << std::endl;
+		std::cout << std::endl << "Use the following URI for a damage breakdown by effect:" << std::endl;
 		std::cout << "http://chart.apis.google.com/chart?chtt=Damage%20-%20" << tmp->getname() << "&chts=FF0000&cht=p&chs=680x400&chd=t:";
 		std::string labelfixup;
 		for (std::string::const_iterator striter = dmgsrclabel.begin(); striter != dmgsrclabel.end(); striter++)
@@ -651,7 +654,7 @@ int main(int argc, char* argv[])
 		else
 			damagechart += "chtt=Damage%20-%20" + destination;
 		damagechart += "&chts=FF0000&cht=p&chs=680x400&chd=t:" + damagedata + "&chl=" + damagelabel;
-		std::cout << "Use the following URI for an overall damage chart:" << std::endl << damagechart << std::endl;
+		std::cout << std::endl << "Use the following URI for an overall damage chart:" << std::endl << damagechart << std::endl;
 	}
 	if (healing_vec.size() > 0)
 	{
@@ -661,7 +664,7 @@ int main(int argc, char* argv[])
 		else
 			healingchart += "chtt=Healing%20-%20" + destination;
 		healingchart += "&chts=0000FF&cht=p&chs=680x400&chd=t:" + healingdata + "&chl=" + healinglabel;
-		std::cout << "Use the following URI for an overall healing chart:" << std::endl << healingchart << std::endl;
+		std::cout << std::endl << "Use the following URI for an overall healing chart:" << std::endl << healingchart << std::endl;
 	}
 
 	return 0;
