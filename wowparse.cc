@@ -317,121 +317,105 @@ int main(int argc, char* argv[])
 		result2 = fields[10];
 		amount = atol(result2.c_str());
 
+		// before going any further, check for valid fields
+		if (source.length() > 0 && srcname != source)
+			continue;
+		if (destination.length() > 0 && dstname != destination)
+			continue;
+		if (srcname == "nil" || dstname == "nil")
+			continue;
+		
 		// log item must be one of these types (this list may change)
 		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 		{
-			// if we're filtering on source, check for a match
-			if (source.length() > 0 && srcname != source)
-				continue;
+			// time conversion is probably expensive, so we defer it to here...log doesn't give us years, so we need to fix it
+			char* slash =  strchr(line, '/');
+			if (slash != NULL)
+				*slash = '-';
+			dt::ptime now = dt::second_clock::local_time();
+			dt::ptime t = dt::time_from_string(std::string(year) + line);
 
-			// if we're filtering on destination, check for a match
-			if (destination.length() > 0 && dstname != destination)
-				continue;
-
-			// we only track things which have a source and a destination	
-			if (srcname != "nil" && dstname != "nil")
+			// fixup for swing damage, since format is different
+			if (action == SWING_DAMAGE)
 			{
-				// time conversion is probably expensive, so we defer it to here...log doesn't give us years, so we need to fix it
-				char* slash =  strchr(line, '/');
-				if (slash != NULL)
-					*slash = '-';
-				dt::ptime now = dt::second_clock::local_time();
-				dt::ptime t = dt::time_from_string(std::string(year) + line);
+				effect = "Swing";
+				amount = atol(result.c_str());
+			}
 
-				// fixup for swing damage, since format is different
-				if (action == SWING_DAMAGE)
-				{
-					effect = "Swing";
-					amount = atol(result.c_str());
-				}
+			// get or create the current source by id
+			sourcestats_ptr cursource = sources[srcguid];
+			if (cursource == NULL)
+			{
+				cursource = sourcestats_ptr(new sourcestats(srcguid, srcname));
+				sources[srcguid] = cursource;
+			}
 
-				// get or create the current source by id
-				sourcestats_ptr cursource = sources[srcguid];
-				if (cursource == NULL)
-				{
-					cursource = sourcestats_ptr(new sourcestats(srcguid, srcname));
-					sources[srcguid] = cursource;
-				}
+			// add to overall damage or healing stats at the source level
+			if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
+				cursource->addtodamage(amount);
+			else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
+				cursource->addtohealing(amount);
 
-				// add to overall damage or healing stats at the source level
-				if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
-					cursource->addtodamage(amount);
-				else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
-					cursource->addtohealing(amount);
+			// get or create the current destination by id
+			destinationmap& destinations = cursource->getdestinations();
+			destinationstats_ptr curdestination = destinations[dstguid];
+			if (curdestination == NULL)
+			{
+				// if this is a player character, we set the flag
+				curdestination = destinationstats_ptr(new destinationstats(dstguid, dstname));
+				if ((dstguid & 0x00f0000000000000LL) == 0)
+					curdestination->setisplayer();
+				destinations[dstguid] = curdestination;
+			}
 
-				// get or create the current destination by id
-				destinationmap& destinations = cursource->getdestinations();
-				destinationstats_ptr curdestination = destinations[dstguid];
-				if (curdestination == NULL)
-				{
-					// if this is a player character, we set the flag
-					curdestination = destinationstats_ptr(new destinationstats(dstguid, dstname));
-					if ((dstguid & 0x00f0000000000000LL) == 0)
-						curdestination->setisplayer();
-					destinations[dstguid] = curdestination;
-				}
+			// update timestamp for dps calculations
+			curdestination->addtimestamp(t);
 
-				// update timestamp for dps calculations
-				curdestination->addtimestamp(t);
+			// add to overall damage or healing stats at the destination level
+			if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
+				curdestination->addtodamage(amount);
+			else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
+				curdestination->addtohealing(amount);
 
-				// add to overall damage or healing stats at the destination level
-				if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
-					curdestination->addtodamage(amount);
-				else if (action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
-					curdestination->addtohealing(amount);
-
-				// get the current attack type
-				attackstats_ptr curattack;
-				attackvector& attacks = curdestination->getattacks();
-				attackiter iter3 = attacks.begin();
-				attackiter end = attacks.end();
-				while (iter3 != end)
+			// get the current attack type
+			attackstats_ptr curattack;
+			attackvector& attacks = curdestination->getattacks();
+			attackiter iter3 = attacks.begin();
+			attackiter end = attacks.end();
+			while (iter3 != end)
+			{
+				attackstats_ptr tmp = *iter3++;
+				if (tmp->getname() == effect)
 				{
-					attackstats_ptr tmp = *iter3++;
-					if (tmp->getname() == effect)
-					{
-						curattack = tmp;
-						break;
-					}
-				}
-
-				// this attack type doesn't exist yet for the destination target, create it
-				if (!curattack)
-				{
-					curattack = attackstats_ptr(new attackstats(effect));
-					curdestination->addattack(curattack);
-				}
-
-				// update the individual healing or damage stat
-				if (action == SPELL_DAMAGE)
-				{
-					curattack->addspelldamage(amount);
-				}
-				else if (action == SPELL_PERIODIC_DAMAGE)
-				{
-					curattack->addspellperiodicdamage(amount);
-				}
-				else if (action == SPELL_HEAL)
-				{
-					curattack->addspellheal(amount);
-				}
-				else if (action == SPELL_PERIODIC_HEAL)
-				{
-					curattack->addspellperiodicheal(amount);
-				}
-				else if (action == RANGE_DAMAGE)
-				{
-					curattack->addrangedamage(amount);
-				}
-				else if (action == SWING_DAMAGE)
-				{
-					curattack->addswingdamage(amount);
+					curattack = tmp;
+					break;
 				}
 			}
 
-			// this is the actual # of lines we processed
-			lineparsedcount++;
+			// this attack type doesn't exist yet for the destination target, create it
+			if (!curattack)
+			{
+				curattack = attackstats_ptr(new attackstats(effect));
+				curdestination->addattack(curattack);
+			}
+
+			// update the individual healing or damage stat
+			if (action == SPELL_DAMAGE)
+				curattack->addspelldamage(amount);
+			else if (action == SPELL_PERIODIC_DAMAGE)
+				curattack->addspellperiodicdamage(amount);
+			else if (action == SPELL_HEAL)
+				curattack->addspellheal(amount);
+			else if (action == SPELL_PERIODIC_HEAL)
+				curattack->addspellperiodicheal(amount);
+			else if (action == RANGE_DAMAGE)
+				curattack->addrangedamage(amount);
+			else if (action == SWING_DAMAGE)
+				curattack->addswingdamage(amount);
 		}
+
+		// this is the actual # of lines we processed
+		lineparsedcount++;
 	}
 
 	// dump the stats out
