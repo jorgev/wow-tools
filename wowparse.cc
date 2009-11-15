@@ -113,7 +113,7 @@ public:
 	void setisplayer() { isplayer = true; }
 	unsigned long gettotaldamage() const { return totaldamage; }
 	unsigned long gettotalhealing() const { return totalhealing; }
-	dt::time_duration gettotaltime() const { return (end - start); }
+	dt::time_duration gettotaltime() const { return std::max((end - start), dt::time_duration(0, 0, 1)); }
 	bool getisplayer() const { return isplayer; }
 	attackvector& getattacks() { return attacks; }
 	void addattack(attackstats_ptr attack) { attacks.push_back(attack); }
@@ -127,7 +127,6 @@ private:
 	bool isplayer;
 	attackvector attacks;
 	dt::ptime start, end;
-	bool start_time_set;
 };
 
 destinationstats::destinationstats(unsigned long long destinationid, std::string& destinationname)
@@ -137,22 +136,13 @@ destinationstats::destinationstats(unsigned long long destinationid, std::string
 	totaldamage = 0;
 	totalhealing = 0;
 	isplayer = false;
-	start_time_set = false;
 }
 
 void destinationstats::addtimestamp(dt::ptime timestamp)
 {
-	if (start_time_set)
-	{
-		// just bump the end time
-		end = timestamp;
-	}
-	else
-	{
-		// set the start time
+	if (start == dt::not_a_date_time)
 		start = timestamp;
-		start_time_set = true;
-	}
+	end = timestamp;
 }
 
 typedef boost::shared_ptr<destinationstats> destinationstats_ptr;
