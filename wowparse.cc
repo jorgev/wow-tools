@@ -232,11 +232,11 @@ int main(int argc, char* argv[])
 		destination = vm["destination"].as<std::string>();
 
 	// let the user know what we're doing, to make sure it's what they want
-	std::cout << "Parsing file: " << filename.c_str() << std::endl;
+	std::cout << "Parsing file: " << filename << std::endl;
 	if (source.length() > 0)
-		std::cout << "Filtering on source: " << source.c_str() << std::endl;
+		std::cout << "Filtering on source: " << source << std::endl;
 	if (destination.length() > 0)
-		std::cout << "Filtering on destination: " << destination.c_str() << std::endl;
+		std::cout << "Filtering on destination: " << destination << std::endl;
 	std::cout << std::endl;
 
 	// open the log file
@@ -287,11 +287,12 @@ int main(int argc, char* argv[])
 				if (*temp == '"')
 				{
 					inquotes = false;
-					*temp = '\0';
+					*temp = 0;
 				}
 				temp++;
 			}
-			*temp++ = '\0';
+			if (*temp)
+				*temp++ = 0;
 			fields.push_back(p);
 			p = temp;
 		}
