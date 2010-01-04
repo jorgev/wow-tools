@@ -582,7 +582,7 @@ int main(int argc, char* argv[])
 			dmgsrclabel += buf2;
 		}
 		std::cout << std::endl << "Use the following URI for a damage breakdown by effect:" << std::endl;
-		std::cout << "http://chart.apis.google.com/chart?chtt=Damage%20-%20" << tmp->getname() << "&chts=FF0000&cht=p&chs=680x400&chd=t:";
+		std::cout << "http://chart.apis.google.com/chart?chtt=Damage%20-%20" << tmp->getname() << "&chts=FF0000&cht=p&chs=680x400&chd=t%3A";
 		std::string labelfixup;
 		for (std::string::const_iterator striter = dmgsrclabel.begin(); striter != dmgsrclabel.end(); striter++)
 		{
@@ -627,7 +627,7 @@ int main(int argc, char* argv[])
 			damagechart += "chtt=Total%20Damage";
 		else
 			damagechart += "chtt=Damage%20-%20" + destination;
-		damagechart += "&chts=FF0000&cht=p&chs=680x400&chd=t:" + damagedata + "&chl=" + damagelabel;
+		damagechart += "&chts=FF0000&cht=p&chs=680x400&chd=t%3A" + damagedata + "&chl=" + damagelabel;
 		std::cout << std::endl << "Use the following URI for an overall damage chart:" << std::endl << damagechart << std::endl;
 	}
 	if (healing_vec.size() > 0)
@@ -637,7 +637,7 @@ int main(int argc, char* argv[])
 			healingchart += "chtt=Total%20Healing";
 		else
 			healingchart += "chtt=Healing%20-%20" + destination;
-		healingchart += "&chts=0000FF&cht=p&chs=680x400&chd=t:" + healingdata + "&chl=" + healinglabel;
+		healingchart += "&chts=0000FF&cht=p&chs=680x400&chd=t%3A" + healingdata + "&chl=" + healinglabel;
 		std::cout << std::endl << "Use the following URI for an overall healing chart:" << std::endl << healingchart << std::endl;
 	}
 
