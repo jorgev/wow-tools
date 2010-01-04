@@ -333,7 +333,6 @@ int main(int argc, char* argv[])
 			char* slash =  strchr(line, '/');
 			if (slash != NULL)
 				*slash = '-';
-			dt::ptime now = dt::second_clock::local_time();
 			dt::ptime t = dt::time_from_string(std::string(year) + line);
 
 			// fixup for swing damage, since format is different
