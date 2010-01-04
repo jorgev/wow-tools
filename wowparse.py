@@ -144,6 +144,9 @@ def main():
 		
 		# get the timestamp (NOTE: year is not supplied in the combat log, this will cause problems if log file crosses a year boundary)
 		m = ts_regex.match(date_time)
+		if not m:
+			print 'Failed to parse time: %s' % date_time
+			continue
 		timestamp = datetime(current_year, int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)) * 1000)
 		
 		# add or get source
