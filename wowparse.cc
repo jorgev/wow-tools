@@ -23,6 +23,8 @@ const char* SWING_DAMAGE = "SWING_DAMAGE";
 const char* RANGE_DAMAGE = "RANGE_DAMAGE";
 const char* SPELL_CAST_SUCCESS = "SPELL_CAST_SUCCESS";
 const char* UNIT_DIED = "UNIT_DIED";
+const char* SPELL_AURA_APPLIED = "SPELL_AURA_APPLIED";
+const char* SPELL_AURA_REMOVED = "SPELL_AURA_REMOVED";
 const unsigned int LINESIZE = 1024;
 
 class attackstats
@@ -501,7 +503,7 @@ int main(int argc, char* argv[])
 	// some info
 	dt::ptime end = dt::microsec_clock::local_time();
 	dt::time_duration elapsed = end - start;
-	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed, elapsed time " << (elapsed.total_seconds() + (elapsed.total_milliseconds() / 1000.0)) << "s" << std::endl;
+	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed in " << elapsed << std::endl;
 
 	// build arrays for damage and healing data
 	std::vector<sourcestats_ptr> damage_vec;
