@@ -306,19 +306,29 @@ int main(int argc, char* argv[])
 		// put the fields into some meaningful variable names
 		std::string action, srcname, dstname, effect, result, ph, result2;
 		unsigned long long srcguid, dstguid;
-		unsigned int srcflags, dstflags, amount;
+		unsigned short srcflags, dstflags;
+		unsigned int amount;
 		action = fields[0];
-		sscanf(fields[1], "%llx", &srcguid);
+		std::istringstream is(fields[1]);
+		is >> std::hex >> srcguid;
 		srcname = fields[2];
-		sscanf(fields[3], "%x", &srcflags);
-		sscanf(fields[4], "%llx", &dstguid);
+		is.clear();
+		is.str(fields[3]);
+		is >> std::hex >> srcflags;
+		is.clear();
+		is.str(fields[4]);
+		is >> std::hex >> dstguid;
 		dstname = fields[5];
-		sscanf(fields[6], "%x", &dstflags);
+		is.clear();
+		is.str(fields[6]);
+		is >> std::hex >> dstflags;
 		result = fields[7];
 		effect = fields[8];
 		ph = fields[9];
 		result2 = fields[10];
-		amount = atol(result2.c_str());
+		is.clear();
+		is.str(fields[10]);
+		is >> std::dec >> amount;
 
 		// before going any further, check for valid fields
 		if (source.length() > 0 && srcname != source)
@@ -341,7 +351,9 @@ int main(int argc, char* argv[])
 			if (action == SWING_DAMAGE)
 			{
 				effect = "Swing";
-				amount = atol(result.c_str());
+				is.clear();
+				is.str(result);
+				is >> amount;
 			}
 
 			// get or create the current source by id
