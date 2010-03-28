@@ -29,6 +29,7 @@ const unsigned int LINESIZE = 1024;
 const unsigned int PLAYER_MASK = 0x00000400;
 const unsigned int NPC_MASK = 0x00000800;
 const unsigned int PET_MASK = 0x00001000;
+const unsigned int GUARDIAN_MASK = 0x00002000;
 
 class attackstats
 {
@@ -208,6 +209,7 @@ int main(int argc, char* argv[])
 	std::string filename = "WoWCombatLog.txt";
 	std::string source;
 	std::string destination;
+	bool ignore_pets = false;
 
 	// define the command line arguments that we accept
 	po::options_description desc("Program options");
@@ -216,6 +218,7 @@ int main(int argc, char* argv[])
 		("input-file,i", po::value<std::string>(), "input file")
 		("source,s", po::value<std::string>(), "source")
 		("destination,d", po::value<std::string>(), "destination")
+		("ignore-pets", "don't process pet information")
 	;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -235,6 +238,8 @@ int main(int argc, char* argv[])
 		source = vm["source"].as<std::string>();
 	if (vm.count("destination"))
 		destination = vm["destination"].as<std::string>();
+	if (vm.count("ignore-pets"))
+		ignore_pets = true;
 
 	// let the user know what we're doing, to make sure it's what they want
 	std::cout << "Parsing file: " << filename << std::endl;
@@ -242,6 +247,8 @@ int main(int argc, char* argv[])
 		std::cout << "Filtering on source: " << source << std::endl;
 	if (destination.length() > 0)
 		std::cout << "Filtering on destination: " << destination << std::endl;
+	if (ignore_pets)
+		std::cout << "Ignoring pets" << std::endl;
 	std::cout << std::endl;
 
 	// open the log file
@@ -309,7 +316,7 @@ int main(int argc, char* argv[])
 		// put the fields into some meaningful variable names
 		std::string action, srcname, dstname, effect, result, ph, result2;
 		unsigned long long srcguid, dstguid;
-		unsigned short srcflags, dstflags;
+		unsigned int srcflags, dstflags;
 		unsigned int amount;
 		action = fields[0];
 		srcname = fields[2];
@@ -346,6 +353,10 @@ int main(int argc, char* argv[])
 			is.str(fields[10]);
 			is >> std::dec >> amount;
 
+			// see if we're ignoring pet data
+			if (ignore_pets && ((srcflags & PET_MASK) || (dstflags & PET_MASK)))
+				continue;
+
 			// time conversion is probably expensive, so we defer it to here...log doesn't give us years, so we need to fix it
 			char* slash =  strchr(line, '/');
 			if (slash != NULL)
@@ -358,7 +369,7 @@ int main(int argc, char* argv[])
 				effect = "Swing";
 				is.clear();
 				is.str(result);
-				is >> amount;
+				is >> std::dec >> amount;
 			}
 
 			// get or create the current source by id
