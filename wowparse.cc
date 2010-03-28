@@ -26,6 +26,9 @@ const char* UNIT_DIED = "UNIT_DIED";
 const char* SPELL_AURA_APPLIED = "SPELL_AURA_APPLIED";
 const char* SPELL_AURA_REMOVED = "SPELL_AURA_REMOVED";
 const unsigned int LINESIZE = 1024;
+const unsigned int PLAYER_MASK = 0x00000400;
+const unsigned int NPC_MASK = 0x00000800;
+const unsigned int PET_MASK = 0x00001000;
 
 class attackstats
 {
@@ -379,7 +382,7 @@ int main(int argc, char* argv[])
 			{
 				// if this is a player character, we set the flag
 				curdestination = destinationstats_ptr(new destinationstats(dstguid, dstname));
-				if ((dstguid & 0x00f0000000000000LL) == 0)
+				if (dstflags & PLAYER_MASK)
 					curdestination->setisplayer();
 				destinations[dstguid] = curdestination;
 			}
