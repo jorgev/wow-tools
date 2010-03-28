@@ -309,26 +309,8 @@ int main(int argc, char* argv[])
 		unsigned short srcflags, dstflags;
 		unsigned int amount;
 		action = fields[0];
-		std::istringstream is(fields[1]);
-		is >> std::hex >> srcguid;
 		srcname = fields[2];
-		is.clear();
-		is.str(fields[3]);
-		is >> std::hex >> srcflags;
-		is.clear();
-		is.str(fields[4]);
-		is >> std::hex >> dstguid;
 		dstname = fields[5];
-		is.clear();
-		is.str(fields[6]);
-		is >> std::hex >> dstflags;
-		result = fields[7];
-		effect = fields[8];
-		ph = fields[9];
-		result2 = fields[10];
-		is.clear();
-		is.str(fields[10]);
-		is >> std::dec >> amount;
 
 		// before going any further, check for valid fields
 		if (source.length() > 0 && srcname != source)
@@ -341,6 +323,26 @@ int main(int argc, char* argv[])
 		// log item must be one of these types (this list may change)
 		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 		{
+			// parse the remainder of the fields
+			std::istringstream is(fields[1]);
+			is >> std::hex >> srcguid;
+			is.clear();
+			is.str(fields[3]);
+			is >> std::hex >> srcflags;
+			is.clear();
+			is.str(fields[4]);
+			is >> std::hex >> dstguid;
+			is.clear();
+			is.str(fields[6]);
+			is >> std::hex >> dstflags;
+			result = fields[7];
+			effect = fields[8];
+			ph = fields[9];
+			result2 = fields[10];
+			is.clear();
+			is.str(fields[10]);
+			is >> std::dec >> amount;
+
 			// time conversion is probably expensive, so we defer it to here...log doesn't give us years, so we need to fix it
 			char* slash =  strchr(line, '/');
 			if (slash != NULL)
