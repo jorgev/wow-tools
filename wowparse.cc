@@ -249,6 +249,7 @@ int main(int argc, char* argv[])
 		std::cout << "Filtering on destination: " << destination << std::endl;
 	if (ignore_pets)
 		std::cout << "Ignoring pets" << std::endl;
+	std::cout << std::endl;
 
 	// open the log file
 	std::fstream ifs(filename.c_str(), std::ifstream::in);
@@ -453,7 +454,6 @@ int main(int argc, char* argv[])
 	// parse timing info
 	dt::ptime end = dt::microsec_clock::local_time();
 	dt::time_duration elapsed = end - start;
-	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed in " << elapsed << std::endl << std::endl;
 
 	// dump the stats out
 	unsigned long globaldamage = 0;
@@ -672,6 +672,9 @@ int main(int argc, char* argv[])
 		healingchart += "&chts=0000FF&cht=p&chs=680x400&chd=t%3A" + healingdata + "&chl=" + healinglabel;
 		std::cout << std::endl << "Use the following URI for an overall healing chart:" << std::endl << healingchart << std::endl;
 	}
+
+	// parser timing
+	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed in " << elapsed << std::endl;
 
 	return 0;
 }
