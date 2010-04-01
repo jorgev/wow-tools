@@ -271,6 +271,12 @@ int main(int argc, char* argv[])
 	char year[8];
 	strftime(year, 8, "%Y-", timeinfo);
 	dt::ptime start = dt::microsec_clock::local_time();
+	std::vector<const char*> fields;
+	std::string action, srcname, dstname, effect, result, ph, result2;
+	unsigned long long srcguid, dstguid;
+	unsigned int srcflags, dstflags;
+	unsigned int amount;
+	std::istringstream is;
 	while (ifs.getline(line, LINESIZE))
 	{
 		// bump line count
@@ -282,7 +288,7 @@ int main(int argc, char* argv[])
 			continue;
 
 		// parse the combat data...comma-separated with occasional double-quotes surrounding some fields
-		std::vector<const char*> fields;
+		fields.clear();
 		*p = 0; // null terminate so we can read time later
 		p += 2;
 		char* temp = p;
@@ -313,11 +319,7 @@ int main(int argc, char* argv[])
 		if (fields.size() < 11)
 			continue;
 
-		// put the fields into some meaningful variable names
-		std::string action, srcname, dstname, effect, result, ph, result2;
-		unsigned long long srcguid, dstguid;
-		unsigned int srcflags, dstflags;
-		unsigned int amount;
+		// assign the first fields we are filting on
 		action = fields[0];
 		srcname = fields[2];
 		dstname = fields[5];
@@ -334,7 +336,7 @@ int main(int argc, char* argv[])
 		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 		{
 			// parse the remainder of the fields
-			std::istringstream is(fields[3]);
+			is.str(fields[3]);
 			is >> std::hex >> srcflags;
 			is.clear();
 			is.str(fields[6]);
@@ -417,12 +419,13 @@ int main(int argc, char* argv[])
 			attackiter end = attacks.end();
 			while (iter3 != end)
 			{
-				attackstats_ptr tmp = *iter3++;
+				attackstats_ptr tmp = *iter3;
 				if (tmp->getname() == effect)
 				{
 					curattack = tmp;
 					break;
 				}
+				++iter3;
 			}
 
 			// this attack type doesn't exist yet for the destination target, create it
