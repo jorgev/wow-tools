@@ -249,7 +249,6 @@ int main(int argc, char* argv[])
 		std::cout << "Filtering on destination: " << destination << std::endl;
 	if (ignore_pets)
 		std::cout << "Ignoring pets" << std::endl;
-	std::cout << std::endl;
 
 	// open the log file
 	std::fstream ifs(filename.c_str(), std::ifstream::in);
@@ -334,28 +333,31 @@ int main(int argc, char* argv[])
 		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
 		{
 			// parse the remainder of the fields
-			std::istringstream is(fields[1]);
-			is >> std::hex >> srcguid;
-			is.clear();
-			is.str(fields[3]);
+			std::istringstream is(fields[3]);
 			is >> std::hex >> srcflags;
-			is.clear();
-			is.str(fields[4]);
-			is >> std::hex >> dstguid;
 			is.clear();
 			is.str(fields[6]);
 			is >> std::hex >> dstflags;
-			result = fields[7];
-			effect = fields[8];
-			ph = fields[9];
-			result2 = fields[10];
 			is.clear();
-			is.str(fields[10]);
-			is >> std::dec >> amount;
 
 			// see if we're ignoring pet data
 			if (ignore_pets && ((srcflags & PET_MASK) || (dstflags & PET_MASK)))
 				continue;
+
+			// parse the rest of the fields
+			is.str(fields[1]);
+			is >> std::hex >> srcguid;
+			is.clear();
+			is.str(fields[4]);
+			is >> std::hex >> dstguid;
+			is.clear();
+			result = fields[7];
+			effect = fields[8];
+			ph = fields[9];
+			result2 = fields[10];
+			is.str(fields[10]);
+			is >> std::dec >> amount;
+			is.clear();
 
 			// time conversion is probably expensive, so we defer it to here...log doesn't give us years, so we need to fix it
 			char* slash =  strchr(line, '/');
@@ -367,9 +369,9 @@ int main(int argc, char* argv[])
 			if (action == SWING_DAMAGE)
 			{
 				effect = "Swing";
-				is.clear();
 				is.str(result);
 				is >> std::dec >> amount;
+				is.clear();
 			}
 
 			// get or create the current source by id
@@ -447,6 +449,11 @@ int main(int argc, char* argv[])
 		// this is the actual # of lines we processed
 		lineparsedcount++;
 	}
+
+	// parse timing info
+	dt::ptime end = dt::microsec_clock::local_time();
+	dt::time_duration elapsed = end - start;
+	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed in " << elapsed << std::endl << std::endl;
 
 	// dump the stats out
 	unsigned long globaldamage = 0;
@@ -527,11 +534,6 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-
-	// some info
-	dt::ptime end = dt::microsec_clock::local_time();
-	dt::time_duration elapsed = end - start;
-	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed in " << elapsed << std::endl;
 
 	// build arrays for damage and healing data
 	std::vector<sourcestats_ptr> damage_vec;
