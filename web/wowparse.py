@@ -98,30 +98,7 @@ def main():
 		date_time = major_fields[0]
 		
 		# here we provide our own line parser, since we have fields which may contain separators and are wrapped in quotes
-		combat_data = major_fields[1]
-		combat_fields = []
-		in_quotes = False
-		data = ""
-		for char in combat_data:
-			if char == '"':
-				in_quotes = not in_quotes
-			elif char == ',' and not in_quotes:
-				if hex_regex.match(data):
-					combat_fields.append(long(data, 16))
-				elif dec_regex.match(data):
-					combat_fields.append(int(data))
-				else:
-					combat_fields.append(data)
-				data = ""
-			else:
-				data += char
-		# add last field
-		if hex_regex.match(data):
-			combat_fields.append(long(data, 16))
-		elif dec_regex.match(data):
-			combat_fields.append(int(data))
-		else:
-			combat_fields.append(data)
+		combat_fields = major_fields[1].split(',')
 
 		# all the stuff we're interested in requires 11 fields or greater
 		if len(combat_fields) < 11:
@@ -159,11 +136,11 @@ def main():
 		# update the stats for the source
 		if combat_fields[0] in damage_fields:
 			if combat_fields[0] == 'SWING_DAMAGE':
-				source.total_damage += combat_fields[7]
+				source.total_damage += int(combat_fields[7])
 			else:
-				source.total_damage += combat_fields[10]
+				source.total_damage += int(combat_fields[10])
 		elif combat_fields[0] in healing_fields:
-			source.total_healing += combat_fields[10]
+			source.total_healing += int(combat_fields[10])
 		
 		# add or get destination
 		destinations = source.destinations
@@ -176,11 +153,11 @@ def main():
 		# update the stats for the destination
 		if combat_fields[0] in damage_fields:
 			if combat_fields[0] == 'SWING_DAMAGE':
-				destination.total_damage += combat_fields[7]
+				destination.total_damage += int(combat_fields[7])
 			else:
-				destination.total_damage += combat_fields[10]
+				destination.total_damage += int(combat_fields[10])
 		elif combat_fields[0] in healing_fields:
-			destination.total_healing += combat_fields[10]
+			destination.total_healing += int(combat_fields[10])
 		
 		# destination gets the timestamps
 		if destination.start_time == datetime.min:
@@ -204,15 +181,15 @@ def main():
 			effect.misses += 1
 		elif combat_fields[0] in damage_fields:
 			if combat_fields[0] == 'SWING_DAMAGE':
-				effect.total_damage += combat_fields[7]
+				effect.total_damage += int(combat_fields[7])
 			else:
-				effect.total_damage += combat_fields[10]
+				effect.total_damage += int(combat_fields[10])
 			if combat_fields[0] == 'SPELL_PERIODIC_DAMAGE':
 				effect.ticks += 1
 			else:
 				effect.hits += 1
 		elif combat_fields[0] in healing_fields:
-			effect.total_healing += combat_fields[10]
+			effect.total_healing += int(combat_fields[10])
 			if combat_fields[0] == 'SPELL_PERIODIC_HEAL':
 				effect.ticks += 1
 			else:
