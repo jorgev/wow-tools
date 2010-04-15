@@ -46,29 +46,6 @@ class source_stats:
 		self.destinations = {}
 
 def main():
-	# command line args
-	args = sys.argv[1:]
-	help = False
-	player_only = False
-	filename = "WoWCombatLog.txt"
-	srcname = dstname = ""
-	for (index, arg) in enumerate(args):
-		if arg == '-h':
-			help = True
-		elif arg == '-i':
-			filename = args[index + 1]
-		elif arg == '-s':
-			srcname = args[index + 1]
-		elif arg == '-d':
-			dstname = args[index + 1]
-		elif arg == '-p':
-			player_only = True
-	
-	# if user just wants help, print usage and then exit
-	if help:
-		print "Usage: wowparse.py -i input_file [-s source] [-d destination]"
-		return 0
-	
 	# start reading the file
 	sources = {}
 	line_count = 0
@@ -77,6 +54,7 @@ def main():
 	dec_regex = re.compile('^\d+$')
 	ts_regex = re.compile(r'^(\d+)/(\d+) (\d+):(\d+):(\d+)\.(\d+)')
 	current_year = date.today().year
+	filename = '../WoWCombatLog.txt'
 	file = open(filename, 'r')
 	sys.stdout.write("Parsing " + filename)
 	sys.stdout.flush()
@@ -112,10 +90,6 @@ def main():
 		if not combat_fields[1] or not combat_fields[4]:
 			continue
 			
-		# check for source and/or destination match
-		if (srcname and srcname != combat_fields[2]) or (dstname and dstname != combat_fields[5]):
-			continue
-			
 		# actual number of lines parsed
 		parsed_line_count += 1
 		
@@ -127,11 +101,12 @@ def main():
 		timestamp = datetime(current_year, int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)) * 1000)
 		
 		# add or get source
-		if sources.has_key(combat_fields[1]):
-			source = sources[combat_fields[1]]
+		srcguid = int(combat_fields[1], 16)
+		if sources.has_key(srcguid):
+			source = sources[srcguid]
 		else:
-			source = source_stats(combat_fields[1], combat_fields[2])
-			sources[combat_fields[1]] = source
+			source = source_stats(srcguid, combat_fields[2])
+			sources[srcguid] = source
 		
 		# update the stats for the source
 		if combat_fields[0] in damage_fields:
@@ -143,12 +118,13 @@ def main():
 			source.total_healing += int(combat_fields[10])
 		
 		# add or get destination
+		dstguid = int(combat_fields[4], 16)
 		destinations = source.destinations
-		if destinations.has_key(combat_fields[4]):
-			destination = destinations[combat_fields[4]]
+		if destinations.has_key(dstguid):
+			destination = destinations[dstguid]
 		else:
-			destination = destination_stats(combat_fields[4], combat_fields[5])
-			destinations[combat_fields[4]] = destination
+			destination = destination_stats(dstguid, combat_fields[5])
+			destinations[dstguid] = destination
 			
 		# update the stats for the destination
 		if combat_fields[0] in damage_fields:
