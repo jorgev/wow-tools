@@ -1,8 +1,10 @@
 #!/usr/bin/awk -F: -f
 #
 # this script is meant to be used to tail the combat log and points out when
-# people do stupid stuff, such as standing in fire bombs or other avoidable
-# damage
+# people do stupid stuff, such as standing in fire bombs, getting hit by
+# tail sweep, or other avoidable damage
+#
+# tail -f WoWCombatLog.txt | ./fail.awk
 
 BEGIN {
 	# comma-delimited fields
@@ -23,13 +25,17 @@ NF == 19 {
 	# we're only interested in spell damage and it must match the effect name
 	if (type[2] == "SPELL_DAMAGE" || type[2] == "SPELL_PERIODIC_DAMAGE")
 	{
-		for (i = 0; i < onyxia_effects_count; ++i)
+		npc = substr($3, 2, length($3) - 2)
+		if (npc == "Onyxia")
 		{
-			if (onyxia_effects_array[i] == effect)
+			for (i = 0; i < onyxia_effects_count; ++i)
 			{
-				damage_array[$2, $5] += $11
-				print type[1], $6, $9, damage_array[$2, $5]
-				break
+				if (onyxia_effects_array[i] == effect)
+				{
+					damage_array[$2, $5] += $11
+					print type[1], $6, $9, damage_array[$2, $5]
+					break
+				}
 			}
 		}
 	}
