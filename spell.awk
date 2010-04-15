@@ -1,4 +1,4 @@
-#!/usr/bin/awk -F: -f
+#!/usr/bin/awk -f
 
 BEGIN {
 	# comma-delimited fields

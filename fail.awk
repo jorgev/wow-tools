@@ -1,4 +1,4 @@
-#!/usr/bin/awk -F: -f
+#!/usr/bin/awk -f
 #
 # this script is meant to be used to tail the combat log and points out when
 # people do stupid stuff, such as standing in fire bombs, getting hit by
