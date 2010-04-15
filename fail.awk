@@ -7,15 +7,31 @@
 BEGIN {
 	# comma-delimited fields
 	FS = ","
+
+	# build up our array of effects on which we want to warn
+	onyxia_effects = "Breath,Tail Sweep"
+	onyxia_effects_count = split(onyxia_effects, onyxia_effects_array, ",")
 }
 
-{
-	# $1 actually contains two fields, which we need to split where the double-space occurs
-	split($1, first, "  ")
+NF == 19 {
+	# split the first field, since it has timestamp and effect type
+	split($1, type, "  ")
+
+	# trim off double-quotes
+	effect = substr($9, 2, length($9) - 2)
 
 	# we're only interested in spell damage and it must match the effect name
-	if ((first[2] == "SPELL_DAMAGE" || first[2] == "SPELL_PERIODIC_DAMAGE") && $9 == quoted_effect)
+	if (type[2] == "SPELL_DAMAGE" || type[2] == "SPELL_PERIODIC_DAMAGE")
 	{
+		for (i = 0; i < onyxia_effects_count; ++i)
+		{
+			if (onyxia_effects_array[i] == effect)
+			{
+				damage_array[$2, $5] += $11
+				print type[1], $6, $9, damage_array[$2, $5]
+				break
+			}
+		}
 	}
 }
 
