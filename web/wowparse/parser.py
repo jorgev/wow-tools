@@ -84,6 +84,11 @@ class LogInfo:
 			# actual number of lines parsed
 			self.parsed_line_count += 1
 		
+			# strip surrounding double-quots from source and destination names
+			srcname = combat_fields[2][1:-1]
+			dstname = combat_fields[5][1:-1]
+			effect_type = combat_fields[0]
+			
 			# get the timestamp (NOTE: year is not supplied in the combat log, this will cause problems if log file crosses a year boundary)
 			timestamp = datetime.strptime(date_time, '%m/%d %H:%M:%S.%f')
 		
@@ -97,16 +102,16 @@ class LogInfo:
 			if self.sources.has_key(srcguid):
 				source = self.sources[srcguid]
 			else:
-				source = source_stats(srcguid, combat_fields[2])
+				source = source_stats(srcguid, srcname)
 				self.sources[srcguid] = source
 		
 			# update the stats for the source
-			if combat_fields[0] in damage_fields:
-				if combat_fields[0] == 'SWING_DAMAGE':
+			if effect_type in damage_fields:
+				if effect_type == 'SWING_DAMAGE':
 					source.total_damage += amount
 				else:
 					source.total_damage += amount
-			elif combat_fields[0] in healing_fields:
+			elif effect_type in healing_fields:
 				source.total_healing += amount
 		
 			# add or get destination
@@ -114,16 +119,16 @@ class LogInfo:
 			if destinations.has_key(dstguid):
 				destination = destinations[dstguid]
 			else:
-				destination = destination_stats(dstguid, combat_fields[5])
+				destination = destination_stats(dstguid, dstname)
 				destinations[dstguid] = destination
 			
 			# update the stats for the destination
-			if combat_fields[0] in damage_fields:
-				if combat_fields[0] == 'SWING_DAMAGE':
+			if effect_type in damage_fields:
+				if effect_type == 'SWING_DAMAGE':
 					destination.total_damage += amount
 				else:
 					destination.total_damage += amount
-			elif combat_fields[0] in healing_fields:
+			elif effect_type in healing_fields:
 				destination.total_healing += amount
 		
 			# destination gets the timestamps, for dps/hps calculation
@@ -132,10 +137,10 @@ class LogInfo:
 			destination.end_time = timestamp
 		
 			# add or get effect
-			if combat_fields[0] == 'SWING_DAMAGE':
+			if effect_type == 'SWING_DAMAGE':
 				effect_name = "Swing"
 			else:
-				effect_name = combat_fields[8]
+				effect_name = combat_fields[8][1:-1]
 			effects = destination.effects
 			if effects.has_key(effect_name):
 				effect = effects[effect_name]
@@ -144,20 +149,20 @@ class LogInfo:
 				effects[effect_name] = effect
 			
 			# update effect stats
-			if combat_fields[0] == 'SPELL_MISSED':
+			if effect_type == 'SPELL_MISSED':
 				effect.misses += 1
-			elif combat_fields[0] in damage_fields:
-				if combat_fields[0] == 'SWING_DAMAGE':
+			elif effect_type in damage_fields:
+				if effect_type == 'SWING_DAMAGE':
 					effect.total_damage += amount
 				else:
 					effect.total_damage += amount
-				if combat_fields[0] == 'SPELL_PERIODIC_DAMAGE':
+				if effect_type == 'SPELL_PERIODIC_DAMAGE':
 					effect.ticks += 1
 				else:
 					effect.hits += 1
-			elif combat_fields[0] in healing_fields:
+			elif effect_type in healing_fields:
 				effect.total_healing += amount
-				if combat_fields[0] == 'SPELL_PERIODIC_HEAL':
+				if effect_type == 'SPELL_PERIODIC_HEAL':
 					effect.ticks += 1
 				else:
 					effect.hits += 1
