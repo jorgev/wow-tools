@@ -14,7 +14,7 @@ healing_fields = ['SPELL_HEAL', 'SPELL_PERIODIC_HEAL']
 other_fields = ['SPELL_MISSED']
 tracked_fields = damage_fields + healing_fields + other_fields
 
-class effect_stats:
+class Effect:
 	def __init__(self, name):
 		self.name = name
 		self.total_healing = 0
@@ -24,7 +24,7 @@ class effect_stats:
 		self.resists = 0
 		self.misses = 0
 
-class destination_stats:
+class Destination:
 	def __init__(self, id, name):
 		self.id = id
 		self.name = name
@@ -34,7 +34,7 @@ class destination_stats:
 		self.end_time = datetime.min
 		self.effects = {}
 
-class source_stats:
+class Source:
 	def __init__(self, id, name):
 		self.id = id
 		self.name = name
@@ -107,7 +107,7 @@ class LogInfo:
 			if self.sources.has_key(srcguid):
 				source = self.sources[srcguid]
 			else:
-				source = source_stats(srcguid, srcname)
+				source = Source(srcguid, srcname)
 				self.sources[srcguid] = source
 		
 			# update the stats for the source
@@ -124,7 +124,7 @@ class LogInfo:
 			if destinations.has_key(dstguid):
 				destination = destinations[dstguid]
 			else:
-				destination = destination_stats(dstguid, dstname)
+				destination = Destination(dstguid, dstname)
 				destinations[dstguid] = destination
 			
 			# update the stats for the destination
@@ -150,7 +150,7 @@ class LogInfo:
 			if effects.has_key(effect_name):
 				effect = effects[effect_name]
 			else:
-				effect = effect_stats(effect_name)
+				effect = Effect(effect_name)
 				effects[effect_name] = effect
 			
 			# update effect stats
