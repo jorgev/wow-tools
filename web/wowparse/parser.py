@@ -45,20 +45,25 @@ class source_stats:
 class LogInfo:
 	def __init__(self):
 		self.sources = {}
-		self.line_count = 0
+		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
 	def Parse(self, filename):
 		# parsing a new file, reset some of the instance variables
 		self.sources = {}
-		self.line_count = 0
+		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
 		# start reading the file
 		file = open(filename, 'r')
-		while line = file.readline():
+		while True:
+			# read a single line, exit if nothing read
+		 	line = file.readline()
+			if not line:
+				break
+				
 			# bump line counter
-			self.line_count += 1
+			self.total_line_count += 1
 		
 			# two spaces are used to split the date/time field from the actual combat data
 			major_fields = line.split('  ')
