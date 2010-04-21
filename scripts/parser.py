@@ -112,10 +112,7 @@ class LogInfo:
 		
 			# update the stats for the source
 			if effect_type in damage_fields:
-				if effect_type == 'SWING_DAMAGE':
-					source.total_damage += amount
-				else:
-					source.total_damage += amount
+				source.total_damage += amount
 			elif effect_type in healing_fields:
 				source.total_healing += amount
 		
@@ -129,10 +126,7 @@ class LogInfo:
 			
 			# update the stats for the destination
 			if effect_type in damage_fields:
-				if effect_type == 'SWING_DAMAGE':
-					destination.total_damage += amount
-				else:
-					destination.total_damage += amount
+				destination.total_damage += amount
 			elif effect_type in healing_fields:
 				destination.total_healing += amount
 		
@@ -157,10 +151,7 @@ class LogInfo:
 			if effect_type == 'SPELL_MISSED':
 				effect.misses += 1
 			elif effect_type in damage_fields:
-				if effect_type == 'SWING_DAMAGE':
-					effect.total_damage += amount
-				else:
-					effect.total_damage += amount
+				effect.total_damage += amount
 				if effect_type == 'SPELL_PERIODIC_DAMAGE':
 					effect.ticks += 1
 				else:
