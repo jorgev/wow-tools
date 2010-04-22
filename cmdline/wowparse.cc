@@ -25,6 +25,9 @@ const char* SPELL_CAST_SUCCESS = "SPELL_CAST_SUCCESS";
 const char* UNIT_DIED = "UNIT_DIED";
 const char* SPELL_AURA_APPLIED = "SPELL_AURA_APPLIED";
 const char* SPELL_AURA_REMOVED = "SPELL_AURA_REMOVED";
+const char* SPELL_MISSED = "SPELL_MISSED";
+const char* SWING_MISSED = "SWING_MISSED";
+const char* RANGE_MISSED = "RANGE_MISSED";
 const unsigned int LINESIZE = 1024;
 const unsigned int PLAYER_MASK = 0x00000400;
 const unsigned int NPC_MASK = 0x00000800;
@@ -43,6 +46,15 @@ public:
 	void addspellperiodicheal(unsigned long heal) { healticks++; spellperiodicheal += heal; totalhealing += heal; }
 	void addswingdamage(unsigned long damage) { swinghits++; swingdamage += damage; totaldamage += damage; }
 	void addrangedamage(unsigned long damage) { rangehits++; rangedamage += damage; totaldamage += damage; }
+	void addmiss() { missed++; }
+	void adddodge() { dodged++; }
+	void addblock() { blocked++; }
+	void addparry() { parried++; }
+	void addabsorb() { absorbed++; }
+	void addimmune() { immune++; }
+	void addresist() { resisted++; }
+	void addreflect() { reflected++; }
+	void addevade() { evaded++; }
 	unsigned int getticks() const { return ticks; } 
 	unsigned int gethealticks() const { return healticks; }
 	unsigned int getswinghits() const { return swinghits; }
@@ -57,6 +69,15 @@ public:
 	unsigned long getrangedamage() const { return rangedamage; }
 	unsigned long gettotaldamage() const { return totaldamage; }
 	unsigned long gettotalhealing() const { return totalhealing; }
+	unsigned int getmissed() { return missed; }
+	unsigned int getdodged() { return dodged; }
+	unsigned int getblocked() { return blocked; }
+	unsigned int getparried() { return parried; }
+	unsigned int getabsorbed() { return absorbed; }
+	unsigned int getimmune() { return immune; }
+	unsigned int getresisted() { return resisted; }
+	unsigned int getreflected() { return reflected; }
+	unsigned int getevaded() { return evaded; }
 
 private:
 	std::string name;
@@ -66,9 +87,15 @@ private:
 	unsigned int rangehits;
 	unsigned int spellhits;
 	unsigned int healhits;
-	unsigned int misses;
+	unsigned int missed;
+	unsigned int dodged;
 	unsigned int blocked;
 	unsigned int parried;
+	unsigned int absorbed;
+	unsigned int resisted;
+	unsigned int immune;
+	unsigned int reflected;
+	unsigned int evaded;
 	unsigned long totaldamage;
 	unsigned long totalhealing;
 	unsigned long spelldamage;
@@ -77,9 +104,6 @@ private:
 	unsigned long spellperiodicheal;
 	unsigned long swingdamage;
 	unsigned long rangedamage;
-	unsigned long absorbed;
-	unsigned long resisted;
-	unsigned long immune;
 };
 
 attackstats::attackstats(std::string& attackname)
@@ -99,8 +123,15 @@ attackstats::attackstats(std::string& attackname)
 	spellperiodicheal = 0;
 	swingdamage = 0;
 	rangedamage = 0;
+	missed = 0;
+	dodged = 0;
+	blocked = 0;
+	parried = 0;
 	absorbed = 0;
 	resisted = 0;
+	immune = 0;
+	reflected = 0;
+	evaded = 0;
 }
 
 typedef boost::shared_ptr<attackstats> attackstats_ptr;
@@ -282,8 +313,13 @@ int main(int argc, char* argv[])
 		// bump line count
 		linecount++;
 
+		// remove trailing carriage return, if there is one
+		char* p = strstr(line, "\r");
+		if (p != NULL)
+			*p = 0;
+
 		// double space separates date and combat info
-		char* p = strstr(line, "  ");
+		p = strstr(line, "  ");
 		if (p == NULL)
 			continue;
 
@@ -333,7 +369,8 @@ int main(int argc, char* argv[])
 			continue;
 		
 		// log item must be one of these types (this list may change)
-		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL)
+		if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE || action == SPELL_HEAL || action == SPELL_PERIODIC_HEAL ||
+			action == SPELL_MISSED || action == SWING_MISSED || action == RANGE_MISSED)
 		{
 			// parse the remainder of the fields
 			is.str(fields[3]);
@@ -448,6 +485,30 @@ int main(int argc, char* argv[])
 				curattack->addrangedamage(amount);
 			else if (action == SWING_DAMAGE)
 				curattack->addswingdamage(amount);
+			
+			std::string miss_detail;
+			if (action == SPELL_MISSED || action == RANGE_MISSED)
+				miss_detail = result2;
+			else if (action == SWING_MISSED)
+				miss_detail = result;
+			if (miss_detail == "ABSORB")
+				curattack->addabsorb();
+			else if (miss_detail == "BLOCK")
+				curattack->addblock();
+			else if (miss_detail == "PARRY")
+				curattack->addparry();
+			else if (miss_detail == "IMMUNE")
+				curattack->addimmune();
+			else if (miss_detail == "DODGE")
+				curattack->adddodge();
+			else if (miss_detail == "MISS")
+				curattack->addmiss();
+			else if (miss_detail == "RESIST")
+				curattack->addresist();
+			else if (miss_detail == "REFLECT")
+				curattack->addreflect();
+			else if (miss_detail == "EVADE")
+				curattack->addevade();
 		}
 
 		// this is the actual # of lines we processed
@@ -516,6 +577,15 @@ int main(int argc, char* argv[])
 				unsigned int rangehits = atktmp->getrangehits();
 				unsigned int spellhits = atktmp->getspellhits();
 				unsigned int healhits = atktmp->gethealhits();
+				unsigned int missed = atktmp->getmissed();
+				unsigned int dodged = atktmp->getdodged();
+				unsigned int blocked = atktmp->getblocked();
+				unsigned int parried = atktmp->getparried();
+				unsigned int absorbed = atktmp->getabsorbed();
+				unsigned int immune = atktmp->getimmune();
+				unsigned int resisted = atktmp->getresisted();
+				unsigned int reflected = atktmp->getreflected();
+				unsigned int evaded = atktmp->getevaded();
 				std::cout << "\t\t" << atktmp->getname() << ": ";
 				if (totaldamage > 0)
 					std::cout << totaldamage << " total dmg";
@@ -533,6 +603,24 @@ int main(int argc, char* argv[])
 					std::cout << " - " << swingdamage << " swing dmg, " << swinghits << (swinghits > 1 ? " hits, " : " hit, ") << swingdamage / swinghits << " avg";
 				if (rangehits > 0)
 					std::cout << " - " << rangedamage << " range dmg, " << rangehits << (rangehits > 1 ? " hits, " : " hit, ") << rangedamage / rangehits << " avg";
+				if (missed > 0)
+					std::cout << " - " << missed << " missed";
+				if (dodged > 0)
+					std::cout << " - " << dodged << " dodged";
+				if (blocked > 0)
+					std::cout << " - " << blocked << " blocked";
+				if (parried > 0)
+					std::cout << " - " << parried << " parried";
+				if (absorbed > 0)
+					std::cout << " - " << absorbed << " absorbed";
+				if (immune > 0)
+					std::cout << " - " << immune << " immune";
+				if (resisted > 0)
+					std::cout << " - " << resisted << " resisted";
+				if (reflected > 0)
+					std::cout << " - " << reflected << " reflected";
+				if (evaded > 0)
+					std::cout << " - " << evaded << " evaded";
 				std::cout << std::endl;
 			}
 		}
