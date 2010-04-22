@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 		("source,s", po::value<std::string>(), "source")
 		("destination,d", po::value<std::string>(), "destination")
 		("ignore-pets", "don't process stats for pets")
-		("ignore-friendly-npc", "don't process stats for friendly npcs (army of the dead, bloodworms, etc.)")
+		("ignore-friendly-npcs", "don't process stats for friendly npcs (army of the dead, bloodworms, etc.)")
 	;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
 		destination = vm["destination"].as<std::string>();
 	if (vm.count("ignore-pets"))
 		ignore_pets = true;
-	if (vm.count("ignore-friendly-npc"))
+	if (vm.count("ignore-friendly-npcs"))
 		ignore_friendly_npc = true;
 
 	// let the user know what we're doing, to make sure it's what they want
@@ -547,7 +547,19 @@ int main(int argc, char* argv[])
 	{
 		// iterate through each source
 		const sourcestats_ptr tmp = iter->second;
-		std::cout << tmp->getname() << " (0x" << std::uppercase << std::hex << std::setw(16) << std::setfill('0') << tmp->getid() << "): " << std::dec;
+		unsigned char type_mask = (tmp->getid() & 0x0070000000000000) >> 52;
+		std::string type = "Unknown";
+		if (type_mask == 0)
+			type = "Player";
+		else if (type_mask == 1)
+			type = "World";
+		else if (type_mask == 3)
+			type = "NPC";
+		else if (type_mask == 4)
+			type = "Pet";
+		else if (type_mask == 5)
+			type = "Vehicle";
+		std::cout << tmp->getname() << " (" << type << "): ";
 		unsigned long totaldamage = tmp->gettotaldamage();
 		globaldamage += totaldamage;
 		unsigned long totalhealing = tmp->gettotalhealing();
@@ -567,7 +579,19 @@ int main(int argc, char* argv[])
 		for (destinationiter iter2 = destinations.begin(); iter2 != destination_end; ++iter2)
 		{
 			const destinationstats_ptr desttmp = iter2->second;
-			std::cout << "\t" << desttmp->getname() << " (0x" << std::hex << std::setw(16) << std::setfill('0') << desttmp->getid() << "): " << std::dec;
+			type_mask = (desttmp->getid() & 0x0070000000000000) >> 52;
+			type = "Unknown";
+			if (type_mask == 0)
+				type = "Player";
+			else if (type_mask == 1)
+				type = "World";
+			else if (type_mask == 3)
+				type = "NPC";
+			else if (type_mask == 4)
+				type = "Pet";
+			else if (type_mask == 5)
+				type = "Vehicle";
+			std::cout << "\t" << desttmp->getname() << " (" <<  type << "): ";
 			totaldamage = desttmp->gettotaldamage();
 			totalhealing = desttmp->gettotalhealing();
 			secs = desttmp->gettotaltime().total_milliseconds() / 1000.0;
@@ -786,7 +810,7 @@ int main(int argc, char* argv[])
 	}
 
 	// parser timing
-	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed in " << elapsed << std::endl;
+	std::cout << std::endl << linecount << " total lines, " << lineparsedcount << " lines parsed in " << elapsed.total_milliseconds() << "ms" << std::endl;
 
 	return 0;
 }
