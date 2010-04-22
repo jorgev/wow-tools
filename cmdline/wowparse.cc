@@ -282,6 +282,8 @@ int main(int argc, char* argv[])
 		destination = vm["destination"].as<std::string>();
 	if (vm.count("ignore-pets"))
 		ignore_pets = true;
+	if (vm.count("ignore-friendly-npc"))
+		ignore_friendly_npc = true;
 
 	// let the user know what we're doing, to make sure it's what they want
 	std::cout << "Parsing file: " << filename << std::endl;
@@ -395,10 +397,14 @@ int main(int argc, char* argv[])
 			if (ignore_pets && ((srcflags & PET_MASK) || (dstflags & PET_MASK)))
 				continue;
 
-			// parse the rest of the fields
+			// we need the source guid for the next check
 			is.str(fields[1]);
 			is >> std::hex >> srcguid;
 			is.clear();
+
+			// see if we're ignoring friendly npc
+
+			// parse the rest of the fields
 			is.str(fields[4]);
 			is >> std::hex >> dstguid;
 			is.clear();
