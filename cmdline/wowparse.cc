@@ -32,7 +32,7 @@ const unsigned int PLAYER_MASK = 0x00000400;
 const unsigned int NPC_MASK = 0x00000800;
 const unsigned int PET_MASK = 0x00001000;
 const unsigned int GUARDIAN_MASK = 0x00002000;
-
+const unsigned int NEUTRAL_MASK = 0x00000020;
 class attackstats
 {
 public:
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
 	std::string source;
 	std::string destination;
 	bool ignore_pets = false;
-	bool ignore_friendly_npc = false;
+	bool ignore_guardians = false;
 
 	// define the command line arguments that we accept
 	po::options_description desc("Program options");
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 		("source,s", po::value<std::string>(), "source")
 		("destination,d", po::value<std::string>(), "destination")
 		("ignore-pets", "don't process stats for pets")
-		("ignore-friendly-npcs", "don't process stats for friendly npcs (army of the dead, bloodworms, etc.)")
+		("ignore-guardians", "don't process stats for guardians (army of the dead, bloodworms, etc.)")
 	;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -282,8 +282,8 @@ int main(int argc, char* argv[])
 		destination = vm["destination"].as<std::string>();
 	if (vm.count("ignore-pets"))
 		ignore_pets = true;
-	if (vm.count("ignore-friendly-npcs"))
-		ignore_friendly_npc = true;
+	if (vm.count("ignore-guardians"))
+		ignore_guardians = true;
 
 	// let the user know what we're doing, to make sure it's what they want
 	std::cout << "Parsing file: " << filename << std::endl;
@@ -293,6 +293,8 @@ int main(int argc, char* argv[])
 		std::cout << "Filtering on destination: " << destination << std::endl;
 	if (ignore_pets)
 		std::cout << "Ignoring pets" << std::endl;
+	if (ignore_guardians)
+		std::cout << "Ignoring guardians" << std::endl;
 	std::cout << std::endl;
 
 	// open the log file
@@ -386,6 +388,7 @@ int main(int argc, char* argv[])
 			action == SPELL_MISSED || action == SWING_MISSED || action == RANGE_MISSED)
 		{
 			// parse the remainder of the fields
+			is.clear();
 			is.str(fields[3]);
 			is >> std::hex >> srcflags;
 			is.clear();
@@ -397,14 +400,14 @@ int main(int argc, char* argv[])
 			if (ignore_pets && ((srcflags & PET_MASK) || (dstflags & PET_MASK)))
 				continue;
 
-			// we need the source guid for the next check
+			// see if we're ignoring guardians
+			if (ignore_guardians && ((srcflags & GUARDIAN_MASK) || (dstflags & GUARDIAN_MASK)))
+				continue;
+
+			// parse the rest of the fields
 			is.str(fields[1]);
 			is >> std::hex >> srcguid;
 			is.clear();
-
-			// see if we're ignoring friendly npc
-
-			// parse the rest of the fields
 			is.str(fields[4]);
 			is >> std::hex >> dstguid;
 			is.clear();
