@@ -10,7 +10,6 @@
 #include <boost/date_time.hpp>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
-#include <time.h>
 
 namespace po = boost::program_options;
 namespace dt = boost::posix_time;
@@ -198,6 +197,8 @@ public:
 	unsigned long gettotaldamage() const { return totaldamage; }
 	unsigned long gettotalhealing() const { return totalhealing; }
 	destinationmap& getdestinations() { return destinations; }
+	dt::time_duration gettotaltime() const { return std::max((end - start), dt::time_duration(0, 0, 1)); }
+	void addtimestamp(dt::ptime timestamp);
 
 private:
 	std::string name;
@@ -205,6 +206,7 @@ private:
 	unsigned long totaldamage;
 	unsigned long totalhealing;
 	destinationmap destinations;
+	dt::ptime start, end;
 };
 
 sourcestats::sourcestats(unsigned long long sourceid, std::string& sourcename)
@@ -213,6 +215,13 @@ sourcestats::sourcestats(unsigned long long sourceid, std::string& sourcename)
 	id = sourceid;
 	totaldamage = 0;
 	totalhealing = 0;
+}
+
+void sourcestats::addtimestamp(dt::ptime timestamp)
+{
+	if (start == dt::not_a_date_time)
+		start = timestamp;
+	end = timestamp;
 }
 
 typedef boost::shared_ptr<sourcestats> sourcestats_ptr;
@@ -241,6 +250,7 @@ int main(int argc, char* argv[])
 	std::string source;
 	std::string destination;
 	bool ignore_pets = false;
+	bool ignore_friendly_npc = false;
 
 	// define the command line arguments that we accept
 	po::options_description desc("Program options");
@@ -249,7 +259,8 @@ int main(int argc, char* argv[])
 		("input-file,i", po::value<std::string>(), "input file")
 		("source,s", po::value<std::string>(), "source")
 		("destination,d", po::value<std::string>(), "destination")
-		("ignore-pets", "don't process pet information")
+		("ignore-pets", "don't process stats for pets")
+		("ignore-friendly-npc", "don't process stats for friendly npcs (army of the dead, bloodworms, etc.)")
 	;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -422,6 +433,9 @@ int main(int argc, char* argv[])
 				sources[srcguid] = cursource;
 			}
 
+			// update timestamp for dps/hps calculations
+			cursource->addtimestamp(t);
+
 			// add to overall damage or healing stats at the source level
 			if (action == SPELL_DAMAGE || action == SPELL_PERIODIC_DAMAGE || action == RANGE_DAMAGE || action == SWING_DAMAGE)
 				cursource->addtodamage(amount);
@@ -440,7 +454,7 @@ int main(int argc, char* argv[])
 				destinations[dstguid] = curdestination;
 			}
 
-			// update timestamp for dps calculations
+			// update timestamp for dps/hps calculations
 			curdestination->addtimestamp(t);
 
 			// add to overall damage or healing stats at the destination level
@@ -532,12 +546,13 @@ int main(int argc, char* argv[])
 		globaldamage += totaldamage;
 		unsigned long totalhealing = tmp->gettotalhealing();
 		globalhealing += totalhealing;
+		double secs = tmp->gettotaltime().total_milliseconds() / 1000.0;
 		if (totaldamage > 0)
-			std::cout << totaldamage << " dmg dealt";
+			std::cout << totaldamage << " dmg dealt over " << secs << " seconds (" << totaldamage / secs << " DPS) ";
 		if (totaldamage > 0 && totalhealing > 0)
 			std::cout << ", ";
 		if (totalhealing > 0)
-			std::cout << totalhealing << " healing done";
+			std::cout << totalhealing << " healing done (" << totalhealing / secs << " HPS) ";
 		std::cout << std::endl;
 
 		// for each source, iterate through all the destination targets
@@ -549,11 +564,11 @@ int main(int argc, char* argv[])
 			std::cout << "\t" << desttmp->getname() << " (0x" << std::hex << std::setw(16) << std::setfill('0') << desttmp->getid() << "): " << std::dec;
 			totaldamage = desttmp->gettotaldamage();
 			totalhealing = desttmp->gettotalhealing();
-			double secs = desttmp->gettotaltime().total_milliseconds() / 1000.0;
+			secs = desttmp->gettotaltime().total_milliseconds() / 1000.0;
 			if (totaldamage > 0)
 				std::cout << totaldamage << " dmg taken over " << secs << " seconds (" << totaldamage / secs << " DPS) ";
 			if (totalhealing > 0)
-				std::cout << totalhealing << " healing received";
+				std::cout << totalhealing << " healing received (" << totalhealing / secs << " HPS) ";
 			std::cout << std::endl;
 
 			// now we iterate through all the attack/healing types from source -> destination
