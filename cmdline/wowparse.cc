@@ -648,9 +648,9 @@ int main(int argc, char* argv[])
 	for (sourceiter iter = sources.begin(); iter != source_end; ++iter)
 	{
 		const sourcestats_ptr tmp = iter->second;
-		if (tmp->gettotaldamage() > 0)
+		if (tmp->gettotaldamage() > 0 && (tmp->getid() & 0x0070000000000000) == 0) // only care about player damage)
 			damage_vec.push_back(iter->second);
-		if (tmp->gettotalhealing() > 0 && (tmp->getid() & 0x00f0000000000000LL) == 0) // only care about player healing
+		if (tmp->gettotalhealing() > 0 && (tmp->getid() & 0x0070000000000000) == 0) // only care about player healing
 			healing_vec.push_back(iter->second);
 	}
 
