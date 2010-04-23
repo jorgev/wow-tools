@@ -33,6 +33,7 @@ const unsigned int NPC_MASK = 0x00000800;
 const unsigned int PET_MASK = 0x00001000;
 const unsigned int GUARDIAN_MASK = 0x00002000;
 const unsigned int NEUTRAL_MASK = 0x00000020;
+
 class attackstats
 {
 public:
@@ -775,6 +776,59 @@ int main(int argc, char* argv[])
 				labelfixup += *striter;
 		}
 		std::cout << dmgsrcdata << "&chl=" << labelfixup << std::endl;
+	}
+
+	// if only one source, we'll throw in a chart for healing
+	std::string healsrcdata, healsrclabel;
+	std::map<std::string, unsigned long> healsrcmap;
+	if (healing_vec.size() == 1)
+	{
+		std::vector<sourcestats_ptr>::const_iterator p = healing_vec.begin();
+		const sourcestats_ptr tmp = *p;
+		destinationmap& destinations = tmp->getdestinations();
+		unsigned long totalhealing = 0;
+		for (destinationiter iter = destinations.begin(); iter != destinations.end(); iter++)
+		{
+			const destinationstats_ptr desttmp = iter->second;
+			attackvector& attacks = desttmp->getattacks();
+			attackiter iter2 = attacks.begin();
+			while (iter2 != attacks.end())
+			{
+				const attackstats_ptr atktmp = *iter2++;
+				unsigned long healing = atktmp->gettotalhealing();
+				if (healing > 0)
+				{
+					healsrcmap[atktmp->getname()] += healing;
+					totalhealing += healing;
+				}
+			}
+		}
+		for (std::map<std::string, unsigned long>::const_iterator healsrciter = healsrcmap.begin(); healsrciter != healsrcmap.end(); ++healsrciter)
+		{
+			char buf[256], buf2[256];
+			if (healsrcdata.size() == 0)
+				sprintf(buf, "%0.2f", healsrciter->second * 100 / (double) totalhealing);
+			else
+				sprintf(buf, ",%0.2f", healsrciter->second * 100 / (double) totalhealing);
+			healsrcdata += buf;
+			sprintf(buf, "%0.2f", healsrciter->second * 100 / (double) totalhealing);
+			if (healsrclabel.size() == 0)
+				sprintf(buf2, "%s%%20(%s%%)", healsrciter->first.c_str(), buf);
+			else
+				sprintf(buf2, "|%s%%20(%s%%)", healsrciter->first.c_str(), buf);
+			healsrclabel += buf2;
+		}
+		std::cout << std::endl << "Use the following URI for a healing breakdown by effect:" << std::endl;
+		std::cout << "http://chart.apis.google.com/chart?chtt=Healing%20-%20" << tmp->getname() << "&chts=FF0000&cht=p&chs=680x400&chd=t%3A";
+		std::string labelfixup;
+		for (std::string::const_iterator striter = healsrclabel.begin(); striter != healsrclabel.end(); ++striter)
+		{
+			if (*striter == ' ')
+				labelfixup += "%20";
+			else
+				labelfixup += *striter;
+		}
+		std::cout << healsrcdata << "&chl=" << labelfixup << std::endl;
 	}
 
 	std::string healingdata, healinglabel;
