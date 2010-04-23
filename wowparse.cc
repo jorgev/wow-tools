@@ -819,7 +819,7 @@ int main(int argc, char* argv[])
 			healsrclabel += buf2;
 		}
 		std::cout << std::endl << "Use the following URI for a healing breakdown by effect:" << std::endl;
-		std::cout << "http://chart.apis.google.com/chart?chtt=Healing%20-%20" << tmp->getname() << "&chts=FF0000&cht=p&chs=680x400&chd=t%3A";
+		std::cout << "http://chart.apis.google.com/chart?chtt=Healing%20-%20" << tmp->getname() << "&chts=0000FF&cht=p&chs=680x400&chd=t%3A";
 		std::string labelfixup;
 		for (std::string::const_iterator striter = healsrclabel.begin(); striter != healsrclabel.end(); ++striter)
 		{
