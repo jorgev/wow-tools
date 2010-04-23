@@ -46,6 +46,8 @@ public:
 	void addspellperiodicheal(unsigned long heal) { healticks++; spellperiodicheal += heal; totalhealing += heal; }
 	void addswingdamage(unsigned long damage) { swinghits++; swingdamage += damage; totaldamage += damage; }
 	void addrangedamage(unsigned long damage) { rangehits++; rangedamage += damage; totaldamage += damage; }
+	void addcrit() { crits++; }
+	void addperiodiccrit() { periodiccrits++; }
 	void addmiss() { missed++; }
 	void adddodge() { dodged++; }
 	void addblock() { blocked++; }
@@ -55,6 +57,8 @@ public:
 	void addresist() { resisted++; }
 	void addreflect() { reflected++; }
 	void addevade() { evaded++; }
+	unsigned int getcrits() const { return crits; }
+	unsigned int getperiodiccrits() const { return periodiccrits; }
 	unsigned int getticks() const { return ticks; } 
 	unsigned int gethealticks() const { return healticks; }
 	unsigned int getswinghits() const { return swinghits; }
@@ -82,6 +86,8 @@ public:
 private:
 	std::string name;
 	unsigned int ticks;
+	unsigned int crits;
+	unsigned int periodiccrits;
 	unsigned int healticks;
 	unsigned int swinghits;
 	unsigned int rangehits;
@@ -110,6 +116,8 @@ attackstats::attackstats(std::string& attackname)
 {
 	name = attackname;
 	ticks = 0;
+	crits = 0;
+	periodiccrits = 0;
 	healticks = 0;
 	swinghits = 0;
 	rangehits = 0;
@@ -518,6 +526,23 @@ int main(int argc, char* argv[])
 			else if (action == SWING_DAMAGE)
 				curattack->addswingdamage(amount);
 			
+			// was it a crit?
+			if (fields.size() == 19 && std::string(fields[16]) == "1")
+			{
+				if (action == SPELL_PERIODIC_DAMAGE)
+					curattack->addperiodiccrit();
+				else
+					curattack->addcrit();
+			}
+			else if (fields.size() == 14 && std::string(fields[13]) == "1")
+			{
+				if (action == SPELL_PERIODIC_HEAL)
+					curattack->addperiodiccrit();
+				else
+					curattack->addcrit();
+			}
+
+			// various miss types
 			std::string miss_detail;
 			if (action == SPELL_MISSED || action == RANGE_MISSED)
 				miss_detail = result2;
@@ -629,6 +654,8 @@ int main(int argc, char* argv[])
 				unsigned long swingdamage = atktmp->getswingdamage();
 				unsigned long rangedamage = atktmp->getrangedamage();
 				unsigned int ticks = atktmp->getticks();
+				unsigned int crits = atktmp->getcrits();
+				unsigned int periodiccrits = atktmp->getperiodiccrits();
 				unsigned int healticks = atktmp->gethealticks();
 				unsigned int swinghits = atktmp->getswinghits();
 				unsigned int rangehits = atktmp->getrangehits();
@@ -649,17 +676,17 @@ int main(int argc, char* argv[])
 				if (totalhealing > 0)
 					std::cout << totalhealing << " total healing";
 				if (spellhits > 0)
-					std::cout << " - " << spelldamage << " spell dmg, " << spellhits << (spellhits > 1 ? " hits, " : " hit, ") << spelldamage / spellhits << " avg";
+					std::cout << " - " << spelldamage << " spell dmg, " << spellhits << " hit(s), " << crits << " crit(s), " << spelldamage / spellhits << " avg";
 				if (healhits > 0)
-					std::cout << " - " << spellheal << " heal amt, " << healhits << (healhits > 1 ? " hits, " : " hit, ") << spellheal / healhits << " avg";
+					std::cout << " - " << spellheal << " heal amt, " << healhits << " hit(s), " << crits << " crits(s), " << spellheal / healhits << " avg";
 				if (ticks > 0)
-					std::cout << " - " << spellperiodicdamage << " DoT dmg, " << ticks << (ticks > 1 ? " ticks, " : " tick, ") << spellperiodicdamage / ticks << " avg";
+					std::cout << " - " << spellperiodicdamage << " DoT dmg, " << ticks << " tick(s), " << periodiccrits << " crits(s), " << spellperiodicdamage / ticks << " avg";
 				if (healticks > 0)
-					std::cout << " - " << spellperiodicheal << " HoT amt, " << healticks << (healticks > 1 ? " ticks, " : " tick, ") << spellperiodicheal / healticks << " avg";
+					std::cout << " - " << spellperiodicheal << " HoT amt, " << healticks << " tick(s), " << spellperiodicheal / healticks << " avg";
 				if (swinghits > 0)
-					std::cout << " - " << swingdamage << " swing dmg, " << swinghits << (swinghits > 1 ? " hits, " : " hit, ") << swingdamage / swinghits << " avg";
+					std::cout << " - " << swingdamage << " swing dmg, " << swinghits << " hit(s), " << swingdamage / swinghits << " avg";
 				if (rangehits > 0)
-					std::cout << " - " << rangedamage << " range dmg, " << rangehits << (rangehits > 1 ? " hits, " : " hit, ") << rangedamage / rangehits << " avg";
+					std::cout << " - " << rangedamage << " range dmg, " << rangehits << " hit(s), " << rangedamage / rangehits << " avg";
 				if (missed > 0)
 					std::cout << " - " << missed << " missed";
 				if (dodged > 0)
