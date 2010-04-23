@@ -263,8 +263,16 @@ int main(int argc, char* argv[])
 		("ignore-guardians", "don't process stats for guardians (army of the dead, bloodworms, etc.)")
 	;
 	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
-	po::notify(vm);	
+	try
+	{
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm);	
+	}
+	catch (std::exception& ex)
+	{
+		std::cerr << ex.what() << std::endl << desc << std::endl;
+		return 1;
+	}
 
 	// see if the user just wants usage printed
 	if (vm.count("help"))
@@ -687,29 +695,33 @@ int main(int argc, char* argv[])
 			healing_vec.push_back(iter->second);
 	}
 
-	// sort damage so chart is easy to read
-	std::sort(damage_vec.begin(), damage_vec.end(), compare_damage());
-
-	// loop through damage sources
-	std::vector<sourcestats_ptr>::const_iterator p = damage_vec.begin();
+	// if we have multiple sources, dump out an overall raid chart
 	std::string damagedata, damagelabel;
-	while (p != damage_vec.end())
+	if (damage_vec.size() > 1)
 	{
-		// build damage chart info
-		const sourcestats_ptr tmp = *p;
-		char buf[256], buf2[256];
-		if (damagedata.size() == 0)
+		// sort damage so chart is easy to read
+		std::sort(damage_vec.begin(), damage_vec.end(), compare_damage());
+
+		// loop through damage sources
+		std::vector<sourcestats_ptr>::const_iterator p = damage_vec.begin();
+		while (p != damage_vec.end())
+		{
+			// build damage chart info
+			const sourcestats_ptr tmp = *p;
+			char buf[256], buf2[256];
+			if (damagedata.size() == 0)
+				sprintf(buf, "%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
+			else
+				sprintf(buf, ",%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
+			damagedata += buf;
 			sprintf(buf, "%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
-		else
-			sprintf(buf, ",%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
-		damagedata += buf;
-		sprintf(buf, "%0.2f", tmp->gettotaldamage() * 100 / (double) globaldamage);
-		if (damagelabel.size() == 0)
-			sprintf(buf2, "%s%%20(%s%%)", tmp->getname().c_str(), buf);
-		else
-			sprintf(buf2, "|%s%%20(%s%%)", tmp->getname().c_str(), buf);
-		damagelabel += buf2;
-		p++;
+			if (damagelabel.size() == 0)
+				sprintf(buf2, "%s%%20(%s%%)", tmp->getname().c_str(), buf);
+			else
+				sprintf(buf2, "|%s%%20(%s%%)", tmp->getname().c_str(), buf);
+			damagelabel += buf2;
+			p++;
+		}
 	}
 
 	// if only one source, we'll throw in a chart for damage sources
@@ -717,7 +729,7 @@ int main(int argc, char* argv[])
 	std::map<std::string, unsigned long> dmgsrcmap;
 	if (damage_vec.size() == 1)
 	{
-		p = damage_vec.begin();
+		std::vector<sourcestats_ptr>::const_iterator p = damage_vec.begin();
 		const sourcestats_ptr tmp = *p;
 		destinationmap& destinations = tmp->getdestinations();
 		unsigned long totaldamage = 0;
@@ -737,7 +749,7 @@ int main(int argc, char* argv[])
 				}
 			}
 		}
-		for (std::map<std::string, unsigned long>::const_iterator dmgsrciter = dmgsrcmap.begin(); dmgsrciter != dmgsrcmap.end(); dmgsrciter++)
+		for (std::map<std::string, unsigned long>::const_iterator dmgsrciter = dmgsrcmap.begin(); dmgsrciter != dmgsrcmap.end(); ++dmgsrciter)
 		{
 			char buf[256], buf2[256];
 			if (dmgsrcdata.size() == 0)
@@ -755,7 +767,7 @@ int main(int argc, char* argv[])
 		std::cout << std::endl << "Use the following URI for a damage breakdown by effect:" << std::endl;
 		std::cout << "http://chart.apis.google.com/chart?chtt=Damage%20-%20" << tmp->getname() << "&chts=FF0000&cht=p&chs=680x400&chd=t%3A";
 		std::string labelfixup;
-		for (std::string::const_iterator striter = dmgsrclabel.begin(); striter != dmgsrclabel.end(); striter++)
+		for (std::string::const_iterator striter = dmgsrclabel.begin(); striter != dmgsrclabel.end(); ++striter)
 		{
 			if (*striter == ' ')
 				labelfixup += "%20";
@@ -765,33 +777,36 @@ int main(int argc, char* argv[])
 		std::cout << dmgsrcdata << "&chl=" << labelfixup << std::endl;
 	}
 
-	// sort healing info
-	std::sort(healing_vec.begin(), healing_vec.end(), compare_healing());
-
-	// loop through healing sources
-	p = healing_vec.begin();
 	std::string healingdata, healinglabel;
-	while (p != healing_vec.end())
+	if (healing_vec.size() > 1)
 	{
-		// build healing chart info
-		const sourcestats_ptr tmp = *p;
-		char buf[256], buf2[256];
-		if (healingdata.size() == 0)
+		// sort healing info
+		std::sort(healing_vec.begin(), healing_vec.end(), compare_healing());
+
+		// loop through healing sources
+		std::vector<sourcestats_ptr>::const_iterator p = healing_vec.begin();
+		while (p != healing_vec.end())
+		{
+			// build healing chart info
+			const sourcestats_ptr tmp = *p;
+			char buf[256], buf2[256];
+			if (healingdata.size() == 0)
+				sprintf(buf, "%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
+			else
+				sprintf(buf, ",%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
+			healingdata += buf;
 			sprintf(buf, "%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
-		else
-			sprintf(buf, ",%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
-		healingdata += buf;
-		sprintf(buf, "%0.2f", tmp->gettotalhealing() * 100 / (double) globalhealing);
-		if (healinglabel.size() == 0)
-			sprintf(buf2, "%s%%20(%s%%)", tmp->getname().c_str(), buf);
-		else
-			sprintf(buf2, "|%s%%20(%s%%)", tmp->getname().c_str(), buf);
-		healinglabel += buf2;
-		p++;
+			if (healinglabel.size() == 0)
+				sprintf(buf2, "%s%%20(%s%%)", tmp->getname().c_str(), buf);
+			else
+				sprintf(buf2, "|%s%%20(%s%%)", tmp->getname().c_str(), buf);
+			healinglabel += buf2;
+			p++;
+		}
 	}
 
 	// for a visual, we dump out a URI for a google chart
-	if (damage_vec.size() > 0)
+	if (damage_vec.size() > 1)
 	{
 		std::string damagechart = "http://chart.apis.google.com/chart?";
 		if (destination.length() == 0)
@@ -801,7 +816,7 @@ int main(int argc, char* argv[])
 		damagechart += "&chts=FF0000&cht=p&chs=680x400&chd=t%3A" + damagedata + "&chl=" + damagelabel;
 		std::cout << std::endl << "Use the following URI for an overall damage chart:" << std::endl << damagechart << std::endl;
 	}
-	if (healing_vec.size() > 0)
+	if (healing_vec.size() > 1)
 	{
 		std::string healingchart = "http://chart.apis.google.com/chart?";
 		if (destination.length() == 0)
