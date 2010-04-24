@@ -8,6 +8,7 @@ Created by Jorge Velázquez on 2010-04-24.
 
 import cgi
 import datetime
+import re
 import sqlite3
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -58,7 +59,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			f.close()
 		else:
 			# some kind of html page
-			self.wfile.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">')
+			self.wfile.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n')
 			self.wfile.write('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n')
 			self.wfile.write('<head>\n')
 			self.wfile.write('<title>World of Warcraft Combat Log Parser</title>\n')
@@ -82,7 +83,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				self.wfile.write('<p><input type="file" id="file" name="file" /></p>\n')
 				self.wfile.write('<p><input class="awesome gray" type="submit" id="submit" value="Upload" /></p>\n')
 				self.wfile.write('</form>\n')
-			elif self.path == '/raids':
+			elif self.path == '/raid':
 				self.wfile.write('<link rel="stylesheet" href="/stylesheets/styles.css" type="text/css" />\n')
 				self.wfile.write('<link rel="stylesheet" href="/stylesheets/awesome-buttons.css" type="text/css" />\n')
 				self.wfile.write('</head>\n')
@@ -94,10 +95,23 @@ class MyHandler(BaseHTTPRequestHandler):
 				cursor = conn.cursor()
 				cursor.execute('select * from raid order by created desc')
 				for row in cursor:
-					self.wfile.write('<tr><td><a href="/raids?id=%d">%s</a></td></tr>\n' % (row[0], row[1]))
+					self.wfile.write('<tr><td><a href="/raid/%d">%s</a></td></tr>\n' % (row[0], row[1]))
 				cursor.close()
 				conn.close()
 				self.wfile.write('</table>\n')
+			elif re.match(r'/raid/(\d+)', self.path):
+				result = re.match(r'/raid/(\d+)', self.path)
+				raid_id = int(result.group(1))
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/awesome-buttons.css" type="text/css" />\n')
+				self.wfile.write('</head>\n')
+				self.wfile.write('<body>\n')
+				conn = sqlite3.connect('/tmp/wowparse.db')
+				cursor = conn.cursor()
+				cursor.execute('select name, html from raid where id = ?', (raid_id, ))
+				row = cursor.fetchone()
+				self.wfile.write('<h1>%s</h1>\n' % row[0])
+				cursor.close()
+				conn.close()
 			self.wfile.write('</body>\n')
 			self.wfile.write('</html>\n')
 		
@@ -110,7 +124,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			raid_name = query.get('name')[0]
 			
 			# parse the combat log here
-			html = self.parse_data(data)
+			html = self.parse_data(data, raid_name)
 			
 			# save the html to the database
 			conn = sqlite3.connect('/tmp/wowparse.db')
@@ -122,10 +136,10 @@ class MyHandler(BaseHTTPRequestHandler):
 			
 			# redirect the user to the raid listing page
 			self.send_response(301)
-			self.send_header('Location', '/raids')
+			self.send_header('Location', '/raid')
 			self.end_headers()
 			
-	def parse_data(self, data):
+	def parse_data(self, data, raid_name):
 		# hashes for calculating stats
 		sources = {}
 		
@@ -223,9 +237,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					effect.hits += 1
 					
 		# we're done parsing, generate some html and save it to the database
-		html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n'
-		html += '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n'
-		html += '</html>\n'
+		html = ''
 		return html
 		
 def main():
