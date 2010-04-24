@@ -8,6 +8,7 @@ Created by Jorge Velázquez on 2010-04-24.
 
 import cgi
 import datetime
+import sqlite3
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
@@ -25,6 +26,11 @@ class Effect:
 		self.ticks = 0
 		self.resists = 0
 		self.misses = 0
+		self.crits = 0
+		self.periodic_crits = 0
+		self.blocked = 0
+		self.parried = 0
+		self.absorbed = 0
 
 class Destination:
 	def __init__(self, id, name):
@@ -46,7 +52,7 @@ class Source:
 
 class MyHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
-		if self.path.endswith('.css') or self.path.endswith('.js'):
+		if self.path.endswith('.css') or self.path.endswith('.js') or self.path.endswith('.jpg'):
 			f = open(curdir + sep + self.path)
 			self.wfile.write(f.read())
 			f.close()
@@ -82,16 +88,39 @@ class MyHandler(BaseHTTPRequestHandler):
 				self.wfile.write('</head>\n')
 				self.wfile.write('<body>\n')
 				self.wfile.write('<h1>Raid Listing</h1>\n')
-				self.wfile.write('<div><a class="awesome gray" href="/upload">Upload Combat Log</a></div>\n')
+				self.wfile.write('<p><a class="awesome gray" href="/upload">Upload Combat Log</a></p>\n')
+				self.wfile.write('<table>\n')
+				conn = sqlite3.connect('/tmp/wowparse.db')
+				cursor = conn.cursor()
+				cursor.execute('select * from raid order by created desc')
+				for row in cursor:
+					self.wfile.write('<tr><td><a href="/raids?id=%d">%s</a></td></tr>\n' % (row[0], row[1]))
+				cursor.close()
+				conn.close()
+				self.wfile.write('</table>\n')
 			self.wfile.write('</body>\n')
 			self.wfile.write('</html>\n')
 		
 	def do_POST(self):
 		if self.path == '/upload':
+			# get our form data
 			content_type, pdict = cgi.parse_header(self.headers.getheader('Content-Type'))
 			query = cgi.parse_multipart(self.rfile, pdict)
-			data = query.get('file')
-			self.parse_data(data[0])
+			data = query.get('file')[0]
+			raid_name = query.get('name')[0]
+			
+			# parse the combat log here
+			html = self.parse_data(data)
+			
+			# save the html to the database
+			conn = sqlite3.connect('/tmp/wowparse.db')
+			cursor = conn.cursor()
+			cursor.execute("insert into raid(name, html, created) values(?, ?, datetime('now'))", [raid_name, html])
+			conn.commit()
+			cursor.close()
+			conn.close()
+			
+			# redirect the user to the raid listing page
 			self.send_response(301)
 			self.send_header('Location', '/raids')
 			self.end_headers()
@@ -192,7 +221,13 @@ class MyHandler(BaseHTTPRequestHandler):
 					effect.ticks += 1
 				else:
 					effect.hits += 1
-
+					
+		# we're done parsing, generate some html and save it to the database
+		html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n'
+		html += '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n'
+		html += '</html>\n'
+		return html
+		
 def main():
 	try:
 		server = HTTPServer(('', 8000), MyHandler)
