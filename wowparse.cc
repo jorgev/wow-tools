@@ -693,8 +693,10 @@ int main(int argc, char* argv[])
 				}
 				if (healticks)
 				{
-					// note: HoTs cannot crit, so no need to check
-					std::cout << " - " << spellperiodicheal << " HoT amt, " << healticks << " tick(s), " << spellperiodicheal / healticks << " avg";
+					std::cout << " - " << spellperiodicheal << " HoT amt, " << healticks << " tick(s), ";
+					if (periodiccrits)
+						std::cout << periodiccrits << " crits(s) (" << periodiccrits * 100.0 / ticks << "%), ";
+					std::cout << spellperiodicheal / healticks << " avg";
 				}
 				if (spelloverheal)
 					std::cout << ", " << spelloverheal << " overhealing (" << spelloverheal * 100.0 / totalhealing << "%)";
