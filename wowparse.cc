@@ -264,6 +264,7 @@ int main(int argc, char* argv[])
 	std::string destination;
 	bool ignore_pets = false;
 	bool ignore_guardians = false;
+	bool html_output = false;
 
 	// define the command line arguments that we accept
 	po::options_description desc("Program options");
@@ -274,11 +275,14 @@ int main(int argc, char* argv[])
 		("destination,d", po::value<std::string>(), "destination")
 		("ignore-pets", "don't process stats for pets")
 		("ignore-guardians", "don't process stats for guardians (army of the dead, bloodworms, etc.)")
+		("html-output", "dump stats in html format for easier viewing")
 	;
+	po::positional_options_description pod;
+	pod.add("input-file", -1);	
 	po::variables_map vm;
 	try
 	{
-		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::store(po::command_line_parser(argc, argv).options(desc).positional(pod).run(), vm);
 		po::notify(vm);	
 	}
 	catch (std::exception& ex)
@@ -305,6 +309,8 @@ int main(int argc, char* argv[])
 		ignore_pets = true;
 	if (vm.count("ignore-guardians"))
 		ignore_guardians = true;
+	if (vm.count("html-output"))
+		html_output = true;
 
 	// let the user know what we're doing, to make sure it's what they want
 	std::cout << "Parsing file: " << filename << std::endl;
