@@ -95,15 +95,6 @@ private:
 	unsigned int rangehits;
 	unsigned int spellhits;
 	unsigned int healhits;
-	unsigned int missed;
-	unsigned int dodged;
-	unsigned int blocked;
-	unsigned int parried;
-	unsigned int absorbed;
-	unsigned int resisted;
-	unsigned int immune;
-	unsigned int reflected;
-	unsigned int evaded;
 	unsigned long totaldamage;
 	unsigned long totalhealing;
 	unsigned long spelldamage;
@@ -113,37 +104,23 @@ private:
 	unsigned long spelloverheal;
 	unsigned long swingdamage;
 	unsigned long rangedamage;
+	unsigned int missed;
+	unsigned int dodged;
+	unsigned int blocked;
+	unsigned int parried;
+	unsigned int absorbed;
+	unsigned int resisted;
+	unsigned int immune;
+	unsigned int reflected;
+	unsigned int evaded;
 };
 
 attackstats::attackstats(std::string& attackname)
+	: name(attackname), ticks(0), crits(0), periodiccrits(0), healticks(0), swinghits(0), rangehits(0), spellhits(0),
+	  healhits(0), totaldamage(0), totalhealing(0), spelldamage(0), spellperiodicdamage(0), spellheal(0), spellperiodicheal(0),
+	  spelloverheal(0), swingdamage(0), rangedamage(0), missed(0), dodged(0), blocked(0), parried(0), absorbed(0),
+	  resisted(0), immune(0), reflected(0), evaded(0)
 {
-	name = attackname;
-	ticks = 0;
-	crits = 0;
-	periodiccrits = 0;
-	healticks = 0;
-	swinghits = 0;
-	rangehits = 0;
-	spellhits = 0;
-	healhits = 0;
-	totaldamage = 0;
-	totalhealing = 0;
-	spelldamage = 0;
-	spellperiodicdamage = 0;
-	spellheal = 0;
-	spellperiodicheal = 0;
-	spelloverheal = 0;
-	swingdamage = 0;
-	rangedamage = 0;
-	missed = 0;
-	dodged = 0;
-	blocked = 0;
-	parried = 0;
-	absorbed = 0;
-	resisted = 0;
-	immune = 0;
-	reflected = 0;
-	evaded = 0;
 }
 
 typedef boost::shared_ptr<attackstats> attackstats_ptr;
@@ -179,12 +156,8 @@ private:
 };
 
 destinationstats::destinationstats(unsigned long long destinationid, std::string& destinationname)
+	: id(destinationid), name(destinationname), totaldamage(0), totalhealing(0), isplayer(false)
 {
-	id = destinationid;
-	name = destinationname;
-	totaldamage = 0;
-	totalhealing = 0;
-	isplayer = false;
 }
 
 void destinationstats::addtimestamp(dt::ptime timestamp)
@@ -223,11 +196,8 @@ private:
 };
 
 sourcestats::sourcestats(unsigned long long sourceid, std::string& sourcename)
+	: name(sourcename), id(sourceid), totaldamage(0), totalhealing(0)
 {
-	name = sourcename;
-	id = sourceid;
-	totaldamage = 0;
-	totalhealing = 0;
 }
 
 void sourcestats::addtimestamp(dt::ptime timestamp)
