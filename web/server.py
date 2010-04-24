@@ -8,6 +8,7 @@ Created by Jorge Velázquez on 2010-04-24.
 
 import cgi
 import datetime
+from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 damage_fields = ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE', 'SWING_DAMAGE', 'RANGE_DAMAGE']
@@ -45,26 +46,45 @@ class Source:
 
 class MyHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
-		self.wfile.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">')
-		self.wfile.write('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n')
-		self.wfile.write('<head>\n')
-		self.wfile.write('<title>World of Warcraft Combat Log Parser</title>\n')
-		self.wfile.write('<link rel="stylesheet" href="/stylesheets/awesome-buttons.css" type="text/css" />\n')
-		self.wfile.write('</head>\n')
-		self.wfile.write('<body>\n')
-		if self.path == '/':
-			self.wfile.write('<h3>World of Warcraft Combat Log Parser</h3>\n')
-			self.wfile.write('<div><a class="awesome gray" href="/upload">Upload Combat Log</a></div>\n')
-		elif self.path == '/upload':
-			self.wfile.write('<h3>Upload Combat Log</h3>\n')
-			self.wfile.write('<form method="post" enctype="multipart/form-data" action="/upload">\n')
-			self.wfile.write('<div><input type="file" id="file" name="file" /> <input type="submit" value="Upload" /></div>\n')
-			self.wfile.write('</form>\n')
-		elif self.path == '/raids':
-			self.wfile.write('<h3>Raid Listing</h3>\n')
-			self.wfile.write('<div><a class="awesome gray" href="/upload">Upload Combat Log</a></div>\n')
-		self.wfile.write('</body>\n')
-		self.wfile.write('</html>\n')
+		if self.path.endswith('.css') or self.path.endswith('.js'):
+			f = open(curdir + sep + self.path)
+			self.wfile.write(f.read())
+			f.close()
+		else:
+			# some kind of html page
+			self.wfile.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">')
+			self.wfile.write('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n')
+			self.wfile.write('<head>\n')
+			self.wfile.write('<title>World of Warcraft Combat Log Parser</title>\n')
+			if self.path == '/':
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/styles.css" type="text/css" />\n')
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/awesome-buttons.css" type="text/css" />\n')
+				self.wfile.write('</head>\n')
+				self.wfile.write('<body>\n')
+				self.wfile.write('<h1>World of Warcraft Combat Log Parser</h1>\n')
+				self.wfile.write('<div><a class="awesome gray" href="/upload">Upload Combat Log</a></div>\n')
+			elif self.path == '/upload':
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/styles.css" type="text/css" />\n')
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/awesome-buttons.css" type="text/css" />\n')
+				self.wfile.write('<script type="text/javascript" src="/js/jquery.min.js"></script>\n')
+				self.wfile.write('<script type="text/javascript" src="/js/upload.js"></script>\n')
+				self.wfile.write('</head>\n')
+				self.wfile.write('<body>\n')
+				self.wfile.write('<h1>Upload Combat Log</h1>\n')
+				self.wfile.write('<form method="post" enctype="multipart/form-data" action="/upload">\n')
+				self.wfile.write('<p><label for="name">Raid Name:</label> <input type="text" id="name" name="name" size="40" maxlength="80" /></p>\n')
+				self.wfile.write('<p><input type="file" id="file" name="file" /></p>\n')
+				self.wfile.write('<p><input class="awesome gray" type="submit" id="submit" value="Upload" /></p>\n')
+				self.wfile.write('</form>\n')
+			elif self.path == '/raids':
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/styles.css" type="text/css" />\n')
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/awesome-buttons.css" type="text/css" />\n')
+				self.wfile.write('</head>\n')
+				self.wfile.write('<body>\n')
+				self.wfile.write('<h1>Raid Listing</h1>\n')
+				self.wfile.write('<div><a class="awesome gray" href="/upload">Upload Combat Log</a></div>\n')
+			self.wfile.write('</body>\n')
+			self.wfile.write('</html>\n')
 		
 	def do_POST(self):
 		if self.path == '/upload':
