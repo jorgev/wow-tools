@@ -102,6 +102,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			elif re.match(r'/raid/(\d+)', self.path):
 				result = re.match(r'/raid/(\d+)', self.path)
 				raid_id = int(result.group(1))
+				self.wfile.write('<link rel="stylesheet" href="/stylesheets/styles.css" type="text/css" />\n')
 				self.wfile.write('<link rel="stylesheet" href="/stylesheets/awesome-buttons.css" type="text/css" />\n')
 				self.wfile.write('</head>\n')
 				self.wfile.write('<body>\n')
