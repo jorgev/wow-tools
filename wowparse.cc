@@ -44,6 +44,7 @@ public:
 	void addspellperiodicdamage(unsigned long damage) { ticks++; spellperiodicdamage += damage; totaldamage += damage; }
 	void addspellheal(unsigned long heal) { healhits++; spellheal += heal; totalhealing += heal; }
 	void addspellperiodicheal(unsigned long heal) { healticks++; spellperiodicheal += heal; totalhealing += heal; }
+	void addspelloverheal(unsigned long overheal) { spelloverheal += overheal; }
 	void addswingdamage(unsigned long damage) { swinghits++; swingdamage += damage; totaldamage += damage; }
 	void addrangedamage(unsigned long damage) { rangehits++; rangedamage += damage; totaldamage += damage; }
 	void addcrit() { crits++; }
@@ -69,6 +70,7 @@ public:
 	unsigned long getspellperiodicdamage() const { return spellperiodicdamage; }
 	unsigned long getspellheal() const { return spellheal; }
 	unsigned long getspellperiodicheal() const { return spellperiodicheal; }
+	unsigned long getspelloverheal() const { return spelloverheal; }
 	unsigned long getswingdamage() const { return swingdamage; }
 	unsigned long getrangedamage() const { return rangedamage; }
 	unsigned long gettotaldamage() const { return totaldamage; }
@@ -108,6 +110,7 @@ private:
 	unsigned long spellperiodicdamage;
 	unsigned long spellheal;
 	unsigned long spellperiodicheal;
+	unsigned long spelloverheal;
 	unsigned long swingdamage;
 	unsigned long rangedamage;
 };
@@ -129,6 +132,7 @@ attackstats::attackstats(std::string& attackname)
 	spellperiodicdamage = 0;
 	spellheal = 0;
 	spellperiodicheal = 0;
+	spelloverheal = 0;
 	swingdamage = 0;
 	rangedamage = 0;
 	missed = 0;
@@ -338,7 +342,7 @@ int main(int argc, char* argv[])
 	std::string action, srcname, dstname, effect, result, ph, result2;
 	unsigned long long srcguid, dstguid;
 	unsigned int srcflags, dstflags;
-	unsigned int amount;
+	unsigned int amount, overheal;
 	std::istringstream is;
 	while (ifs.getline(line, LINESIZE))
 	{
@@ -405,7 +409,6 @@ int main(int argc, char* argv[])
 			action == SPELL_MISSED || action == SWING_MISSED || action == RANGE_MISSED)
 		{
 			// parse the remainder of the fields
-			is.clear();
 			is.str(fields[3]);
 			is >> std::hex >> srcflags;
 			is.clear();
@@ -534,12 +537,26 @@ int main(int argc, char* argv[])
 				else
 					curattack->addcrit();
 			}
+			else if (fields.size() == 16 && std::string(fields[13]) == "1")
+			{
+				// this will be the case for swing damage crits
+				curattack->addcrit();
+			}
 			else if (fields.size() == 14 && std::string(fields[13]) == "1")
 			{
 				if (action == SPELL_PERIODIC_HEAL)
 					curattack->addperiodiccrit();
 				else
 					curattack->addcrit();
+			}
+
+			// overheal
+			if ((action == SPELL_PERIODIC_HEAL || action == SPELL_HEAL) && std::string(fields[11]) != "0")
+			{
+				is.str(fields[11]);
+				is >> std::dec >> overheal;
+				is.clear();
+				curattack->addspelloverheal(overheal);
 			}
 
 			// various miss types
@@ -580,6 +597,7 @@ int main(int argc, char* argv[])
 	unsigned long globaldamage = 0;
 	unsigned long globalhealing = 0;
 	sourceiter source_end = sources.end();
+	std::cout << std::fixed << std::setprecision(1);
 	for (sourceiter iter = sources.begin(); iter != source_end; ++iter)
 	{
 		// iterate through each source
@@ -651,6 +669,7 @@ int main(int argc, char* argv[])
 				unsigned long spellperiodicdamage = atktmp->getspellperiodicdamage();
 				unsigned long spellheal = atktmp->getspellheal();
 				unsigned long spellperiodicheal = atktmp->getspellperiodicheal();
+				unsigned long spelloverheal = atktmp->getspelloverheal();
 				unsigned long swingdamage = atktmp->getswingdamage();
 				unsigned long rangedamage = atktmp->getrangedamage();
 				unsigned int ticks = atktmp->getticks();
@@ -671,33 +690,63 @@ int main(int argc, char* argv[])
 				unsigned int reflected = atktmp->getreflected();
 				unsigned int evaded = atktmp->getevaded();
 				std::cout << "\t\t" << atktmp->getname() << ": ";
-				if (totaldamage > 0)
+				if (totaldamage)
 					std::cout << totaldamage << " total dmg";
-				if (totalhealing > 0)
+				if (totalhealing)
 					std::cout << totalhealing << " total healing";
-				if (spellhits > 0)
-					std::cout << " - " << spelldamage << " spell dmg, " << spellhits << " hit(s), " << crits << " crit(s), " << spelldamage / spellhits << " avg";
-				if (healhits > 0)
-					std::cout << " - " << spellheal << " heal amt, " << healhits << " hit(s), " << crits << " crits(s), " << spellheal / healhits << " avg";
-				if (ticks > 0)
-					std::cout << " - " << spellperiodicdamage << " DoT dmg, " << ticks << " tick(s), " << periodiccrits << " crits(s), " << spellperiodicdamage / ticks << " avg";
-				if (healticks > 0)
+				if (spellhits)
+				{
+					std::cout << " - " << spelldamage << " spell dmg, " << spellhits << " hit(s), ";
+					if (crits)
+						std::cout << crits << " crit(s) (" << crits * 100.0 / spellhits << "%), ";
+					std::cout << spelldamage / spellhits << " avg";
+				}
+				if (healhits)
+				{
+					std::cout << " - " << spellheal << " heal amt, " << healhits << " hit(s), ";
+					if (crits)
+						std::cout << crits << " crits(s) (" << crits * 100.0 / healhits << "%), ";
+					std::cout << spellheal / healhits << " avg";
+				}
+				if (ticks)
+				{
+					std::cout << " - " << spellperiodicdamage << " DoT dmg, " << ticks << " tick(s), ";
+					if (periodiccrits)
+						std::cout << periodiccrits << " crits(s) (" << periodiccrits * 100.0 / ticks << "%), ";
+					std::cout << spellperiodicdamage / ticks << " avg";
+				}
+				if (healticks)
+				{
+					// note: HoTs cannot crit, so no need to check
 					std::cout << " - " << spellperiodicheal << " HoT amt, " << healticks << " tick(s), " << spellperiodicheal / healticks << " avg";
-				if (swinghits > 0)
-					std::cout << " - " << swingdamage << " swing dmg, " << swinghits << " hit(s), " << swingdamage / swinghits << " avg";
-				if (rangehits > 0)
-					std::cout << " - " << rangedamage << " range dmg, " << rangehits << " hit(s), " << rangedamage / rangehits << " avg";
-				if (missed > 0)
+				}
+				if (spelloverheal)
+					std::cout << ", " << spelloverheal << " overhealing (" << spelloverheal * 100.0 / totalhealing << "%)";
+				if (swinghits)
+				{
+					std::cout << " - " << swingdamage << " swing dmg, " << swinghits << " hit(s), ";
+					if (crits)
+						std::cout << crits << " crits(s), ";
+					std::cout << swingdamage / swinghits << " avg";
+				}
+				if (rangehits)
+				{
+					std::cout << " - " << rangedamage << " range dmg, " << rangehits << " hit(s), ";
+					if (crits)
+						std::cout << crits << " crits(s), ";
+					std::cout << rangedamage / rangehits << " avg";
+				}
+				if (missed)
 					std::cout << " - " << missed << " missed";
-				if (dodged > 0)
+				if (dodged)
 					std::cout << " - " << dodged << " dodged";
-				if (blocked > 0)
+				if (blocked)
 					std::cout << " - " << blocked << " blocked";
-				if (parried > 0)
+				if (parried)
 					std::cout << " - " << parried << " parried";
-				if (absorbed > 0)
+				if (absorbed)
 					std::cout << " - " << absorbed << " absorbed";
-				if (immune > 0)
+				if (immune)
 					std::cout << " - " << immune << " immune";
 				if (resisted > 0)
 					std::cout << " - " << resisted << " resisted";
