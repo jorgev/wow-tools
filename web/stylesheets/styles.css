@@ -14,6 +14,10 @@ body
 {
 	color: green;
 }
+td
+{
+	padding: 2px 4px;
+}
 .wow-button
 {
 	background: url(/images/button_bg3.gif) no-repeat;
@@ -68,11 +72,11 @@ body
 	clear: both;
 	padding: 20px
 }
-a
+.link
 {
 	color: #ffbc1c;
 }
-a:hover
+link:hover
 {
 	color: #f7a850;
 }
