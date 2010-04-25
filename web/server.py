@@ -59,6 +59,10 @@ class MyHandler(BaseHTTPRequestHandler):
 				self.send_header('Content-Type', 'image/jpeg')
 			elif self.path.endswith('.gif'):
 				self.send_header('Content-Type', 'image/gif')
+			elif self.path.endswith('.js'):
+				self.send_header('Content-Type', 'application/javascript')
+			elif self.path.endswith('.css'):
+				self.send_header('Content-Type', 'text/css')
 			self.end_headers()
 			f = open(curdir + sep + self.path)
 			self.wfile.write(f.read())
