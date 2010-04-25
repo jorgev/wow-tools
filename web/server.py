@@ -59,6 +59,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			f.close()
 		else:
 			# some kind of html page
+			self.send_response(200)
 			self.send_header('Content-Type', 'text/html; charset=utf-8')
 			self.end_headers()
 			self.wfile.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n')
