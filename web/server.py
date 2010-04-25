@@ -54,9 +54,17 @@ class Source:
 class MyHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		if self.path.endswith('.css') or self.path.endswith('.js') or self.path.endswith('.jpg') or self.path.endswith('.gif'):
+			self.send_response(200)
+			if self.path.endswith('.jpg'):
+				self.send_header('Content-Type', 'image/jpeg')
+			elif self.path.endswith('.gif'):
+				self.send_header('Content-Type', 'image/gif')
+			self.end_headers()
 			f = open(curdir + sep + self.path)
 			self.wfile.write(f.read())
 			f.close()
+		elif self.path == '/favicon.ico':
+			self.send_response(404)
 		else:
 			# some kind of html page
 			self.send_response(200)
@@ -160,7 +168,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				cursor.close()
 				conn.close()
 				self.wfile.write('</div>\n')
-			self.wfile.write('<div id="footer"></div>\n')
+			self.wfile.write('<div id="footer"><span class="copyright">World of Warcraft&reg; and Blizzard Entertainment&reg; are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. <br> These terms and all related materials, logos, and images are copyright &copy; Blizzard Entertainment. This site is in no way associated with or endorsed by Blizzard Entertainment&reg;.</span></div>\n')
 			self.wfile.write('</div></div>\n')
 			self.wfile.write('</body>\n')
 			self.wfile.write('</html>\n')
