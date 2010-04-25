@@ -108,7 +108,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				self.wfile.write('</ul>\n')
 				self.wfile.write('</div>\n')
 				self.wfile.write('<div><h3>File Upload</h3></div>\n')
-				self.wfile.write('<p>Enter a name for this event and select the file to parse. The file will parsed immediately after being upload. If the file is large, it may take a while for the page to respond, please be patient. Once the file is parsed, you will be redirected to a page containing all of your recently uploaded parsed data, with the most recent file at the top.</p>\n')
+				self.wfile.write('<p>Enter a name for this event and select the file to parse. The file will be parsed immediately after being uploaded. If the file is large, it may take a while for the page to respond, please be patient. Once the file is parsed, you will be redirected to a page containing all of your recently uploaded parsed data, with the most recent file at the top.</p>\n')
 				self.wfile.write('<form method="post" enctype="multipart/form-data" action="/upload">\n')
 				self.wfile.write('<p><label for="name">Event Name:</label> <input type="text" id="name" name="name" size="64" maxlength="80" /></p>\n')
 				self.wfile.write('<p><input type="file" id="file" name="file" /></p>\n')
