@@ -62,6 +62,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			self.send_response(200)
 			self.send_header('Content-Type', 'text/html; charset=utf-8')
 			self.end_headers()
+			self.wfile.write('<?xml version="1.0" encoding="UTF-8"?>\n')
 			self.wfile.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n')
 			self.wfile.write('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n')
 			self.wfile.write('<head>\n')
