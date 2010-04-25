@@ -59,6 +59,8 @@ class MyHandler(BaseHTTPRequestHandler):
 			f.close()
 		else:
 			# some kind of html page
+			self.send_header('Content-Type', 'text/html; charset=utf-8')
+			self.end_headers()
 			self.wfile.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n')
 			self.wfile.write('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n')
 			self.wfile.write('<head>\n')
@@ -266,7 +268,7 @@ class MyHandler(BaseHTTPRequestHandler):
 		
 def main():
 	try:
-		server = HTTPServer(('', 8000), MyHandler)
+		server = HTTPServer(('', 80), MyHandler)
 		print 'starting http server...'
 		server.serve_forever()
 	except KeyboardInterrupt:
