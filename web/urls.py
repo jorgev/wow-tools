@@ -16,6 +16,7 @@ urlpatterns = patterns('',
 	(r'^$', 'web.views.index'),
 	(r'^upload$', 'web.views.upload'),
     (r'^raids$', 'web.views.raids'),
-    (r'^raids/(?P<raid_id>\d+)/$', 'web.views.raids'),
+    (r'^raids/(?P<raid_id>\d+)/$', 'web.views.raid_detail'),
+    (r'^register$', 'web.views.register'),
 	(r'^admin/', include(admin.site.urls)),
 )

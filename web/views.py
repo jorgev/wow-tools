@@ -6,6 +6,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 def index(request):
     return render_to_response('index.html', {})
 
+def register(request):
+    return render_to_response('register.html', {})
+
 def raids(request):
     return render_to_response('raids.html', {})
 
