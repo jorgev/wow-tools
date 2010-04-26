@@ -1,6 +1,6 @@
 # Create your views here.
 from django.shortcuts import render_to_response
-from web.models import Event, UploadForm
+from web.models import Event, UploadForm, LoginForm
 from django.http import HttpResponse, HttpResponseRedirect
 
 def index(request):
@@ -21,4 +21,15 @@ def upload(request):
 			return HttpResponse('Form submission failed')
 	else:
 		return render_to_response('upload.html', {})
+
+def login(request):
+	if request.method == 'POST':
+		form = LoginForm(request.POST)
+		if form.is_valid():
+			return HttpResponseRedirect('./')
+		else:
+			return HttpResponse('Form submission failed')
+	else:
+		return render_to_response('login.html', {})
+
 
