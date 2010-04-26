@@ -25,11 +25,16 @@
 							<a href="./register">Register</a>
 							<a href="./">Undefined</a>
 						</div>
+					</div>
 					<div id="middle_column">
 		  				<div class="date_break">Log In</div>
 						<div class="post">
 							<div class="post_body">
+								{% if message %}
+								<p class="warning">{{ message }}</p>
+								{% endif %}
 								<form method="post" enctype="multipart/form-data" action="./login">
+									<input type="hidden" id="next" name="next" value="{{ next }}" />
 									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="64" maxlength="80" /></p>
 									<p><label for="password">Password:</label> <input type="password" id="password" name="password" size="64" maxlength="80" /></p>
 									<p><input class="awesome gray" type="submit" id="submit" value="Log In" /></p>

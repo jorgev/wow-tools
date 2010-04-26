@@ -25,10 +25,14 @@
 							<a href="./register">Register</a>
 							<a href="./">Undefined</a>
 						</div>
+					</div>
 					<div id="middle_column">
 		  				<div class="date_break">Register</div>
 						<div class="post">
 							<div class="post_body">
+								{% if message %}
+								<p class="warning">{{ message }}</p>
+								{% endif %}
 								<form method="post" enctype="multipart/form-data" action="./register">
 									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="64" maxlength="80" /></p>
 									<p><label for="email">Email address:</label> <input type="text" id="email" name="email" size="64" maxlength="80" /></p>

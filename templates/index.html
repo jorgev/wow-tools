@@ -23,9 +23,10 @@
 							<a href="./register">Register</a>
 							<a href="./">Undefined</a>
 						</div>
+					</div>
 					<div id="middle_column">
 						{% if user %}
-						<p>Logged in as {{ user.username }}</p>
+						<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
 						{% else %}
 						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
 						{% endif %}
