@@ -4,10 +4,10 @@ from web.models import Event, UploadForm
 from django.http import HttpResponse, HttpResponseRedirect
 
 def index(request):
-    return render_to_response('wowparse/index.html', {})
+    return render_to_response('index.html', {})
 
 def raids(request):
-    return render_to_response('wowparse/raids.html', {})
+    return render_to_response('raids.html', {})
 
 def upload(request):
 	if request.method == 'POST':
@@ -17,5 +17,5 @@ def upload(request):
 		else:
 			return HttpResponse('Form submission failed')
 	else:
-		return render_to_response('wowparse/upload.html', {})
+		return render_to_response('upload.html', {})
 
