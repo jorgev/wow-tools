@@ -7,6 +7,8 @@
 		<title>World of Warcraft Combat Log Parser</title>
 		<link href="css/style1.css" rel="stylesheet" type="text/css" />
 		<link href="css/awesome-buttons.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="js/jquery.min.js"></script>
+		<script type="text/javascript" src="js/register.js"></script>
 	</head>
 	<body>
 		<div id="ev_bg">
@@ -24,6 +26,17 @@
 							<a href="./">Undefined</a>
 						</div>
 					<div id="middle_column">
+		  				<div class="date_break">Register</div>
+						<div class="post">
+							<div class="post_body">
+								<form method="post" enctype="multipart/form-data" action="./register">
+									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="64" maxlength="80" /></p>
+									<p><label for="email">Email address:</label> <input type="text" id="email" name="email" size="64" maxlength="80" /></p>
+									<p><label for="password">Password:</label> <input type="password" id="password" name="password" size="64" maxlength="80" /></p>
+									<p><input class="awesome gray" type="submit" id="submit" value="Register" /></p>
+								</form>
+							</div>
+						</div>
 					</div>
 				<div id="footer">
 					<div id="subnav"><!--<a href="#">SubNav1</a> | <a href="#">SubNav2</a> | <a href="#">SubNav3</a> | <a href="#">SubNav4</a> | <a href="#">SubNav5</a> | <a href="#">SubNav6</a>--></div>
