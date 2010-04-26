@@ -42,3 +42,13 @@ body { margin:0; font:12px Tahoma; color:#d8f2ff; background:url(../images/bg2.j
 	#subnav a { color:#188de8; }
 	#subnav a:hover { color:#33b9f8 } 
 	.copyright { font-size:10px;}
+
+.warning
+{
+	color: red;
+}
+.status
+{
+	color: green;
+}
+

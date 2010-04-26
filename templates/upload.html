@@ -3,10 +3,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="description" content="World of Warcraft Combat Log Parser" />
 		<title>World of Warcraft Combat Log Parser</title>
-		<link href="css/style1.css" rel="stylesheet" type="text/css">
-		<!-- Change the next line to green.css, yellow.css, or red.css -->
-		<link href="css/blue_tex.css" rel="stylesheet" type="text/css">
+		<link href="css/style1.css" rel="stylesheet" type="text/css" />
+		<link href="css/awesome-buttons.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="js/jquery.min.js"></script>
+		<script type="text/javascript" src="js/upload.js"></script>
 	</head>
 	<body>
 		<div id="ev_bg">
@@ -28,7 +30,7 @@
 						<form method="post" enctype="multipart/form-data" action="./upload">
 							<p><label for="name">Event Name:</label> <input type="text" id="name" name="name" size="64" maxlength="80" /></p>
 							<p><input type="file" id="file" name="file" /></p>
-							<p><input type="submit" id="submit" value="Upload" /></p>
+							<p><input class="awesome gray" type="submit" id="submit" value="Upload" /></p>
 						</form>
 					</div>
 				<div id="footer">
