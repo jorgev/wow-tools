@@ -6,8 +6,8 @@
 		<meta name="description" content="World of Warcraft Combat Log Parser" />
 		<title>World of Warcraft Combat Log Parser</title>
 		<link rel="icon" type="image/png" href="/images/icon.png" />
-		<link href="css/style1.css" rel="stylesheet" type="text/css" />
-		<link href="css/awesome-buttons.css" rel="stylesheet" type="text/css" />
+		<link href="/css/style1.css" rel="stylesheet" type="text/css" />
+		<link href="/css/awesome-buttons.css" rel="stylesheet" type="text/css" />
 	</head>
 	<body>
 		<div id="ev_bg">
@@ -18,11 +18,11 @@
 				<div id="middle" class="horizontal">
 					<div id="left_column">
 						<div id="navigation">
-							<a href="./">Home</a>
-							<a href="./raids">Raid Listing</a>
-							<a href="./upload">Upload Combat Log</a>
-							<a href="./register">Register</a>
-							<a href="./">Undefined</a>
+							<a href="/">Home</a>
+							<a href="/raids">Raid Listing</a>
+							<a href="/upload">Upload Combat Log</a>
+							<a href="/register">Register</a>
+							<a href="/">Undefined</a>
 						</div>
 					</div>
 					<div id="middle_column">
@@ -31,9 +31,10 @@
 						{% else %}
 						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
 						{% endif %}
-		  				<div class="date_break">-- Event Name Goes Here --</div>
+		  				<div class="date_break">{{ raid.name }}</div>
 						<div class="post">
 							<div class="post_body">
+								{{ raid.html }}
 							</div>
 						</div>
 					</div>

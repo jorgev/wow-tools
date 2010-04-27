@@ -34,6 +34,16 @@
 		  				<div class="date_break">Raid Listing</div>
 						<div class="post">
 							<div class="post_body">
+								<table>
+									<thead>
+										<tr><td>Event Name</td><td>Uploaded On</td></tr>
+									</thead>
+									<tbody>
+										{% for raid in raids %}
+										<tr><td><a href="/raids/{{ raid.id }}/">{{ raid.name }}</a></td><td>{{ raid.created }}</td></tr>
+										{% endfor %}
+									</tbody>
+								</table>
 							</div>
 						</div>
 					</div>
