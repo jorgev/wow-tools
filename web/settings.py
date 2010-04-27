@@ -78,6 +78,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+	'web',
 )
 
 LOGIN_URL = '/login'
