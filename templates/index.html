@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="description" content="World of Warcraft Combat Log Parser" />
+		<title>World of Warcraft Combat Log Parser</title>
+		<link rel="icon" type="image/png" href="/images/icon.png" />
+		<link href="css/style1.css" rel="stylesheet" type="text/css" />
+		<link href="css/awesome-buttons.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<div id="ev_bg">
+			<div id="everything">
+				<div id="header">
+					<h1>Combat Log Parser</h1>
+				</div>
+				<div id="middle" class="horizontal">
+					<div id="left_column">
+						<div id="navigation">
+							<a href="./">Home</a>
+							<a href="./raids">Raid Listing</a>
+							<a href="./upload">Upload Combat Log</a>
+							<a href="./register">Register</a>
+							<a href="./changelog">Changelog</a>
+						</div>
+					</div>
+					<div id="middle_column">
+						{% if user %}
+						<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
+						{% else %}
+						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
+						{% endif %}
+		  				<div class="date_break">Introduction</div>
+						<div class="post">
+							<div class="post_body">
+								<p>This site can be used to parse World of Warcraft combat log files. Combat data is logged any time you enable combat logging by using the /combatlog option in-game. The data is written to a file named WoWCombatLog.txt in Logs folder of your installation directory. Combat logging is not enable by default, you must enable it using the option mentioned. Furthermore, the option to log is not persisted, so you must re-enable anytime you log out or switch characters and come back into the game.</p>
+							</div>
+						</div>
+		  				<div class="date_break">How Does It Work?</div>
+						<div class="post">
+							<div class="post_body">
+								<p>This parser works by allowing you to upload your combat log file. Keep in mind that combat files can get very large, so you may want to break up individual encounters into smaller files. Also, the combat log does not log entering/leaving combat events, so it is difficult to get precise DPS/HPS calculations. Whenever possible, you'll want to trim your combat log files to only include the time range you are specifically interested in. Generally, the best way to do this is to look for the very first and last entries for a particular encounter, deleting everything before the first and after the last event. That way, the calculated stats should be fairly accurate. Results are displayed on a web page with charts.</p>
+							</div>
+						</div>
+					</div>
+				<div id="footer">
+					<div id="subnav"><!--<a href="#">SubNav1</a> | <a href="#">SubNav2</a> | <a href="#">SubNav3</a> | <a href="#">SubNav4</a> | <a href="#">SubNav5</a> | <a href="#">SubNav6</a>--></div>
+					<span class="copyright">World of Warcraft&reg; and Blizzard Entertainment&reg; are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. <br> These terms and all related materials, logos, and images are copyright &copy; Blizzard Entertainment. This site is in no way associated with or endorsed by Blizzard Entertainment&reg;.</span>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+

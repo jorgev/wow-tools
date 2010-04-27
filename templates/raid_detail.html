@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="description" content="World of Warcraft Combat Log Parser" />
+		<title>World of Warcraft Combat Log Parser</title>
+		<link rel="icon" type="image/png" href="/images/icon.png" />
+		<link href="/css/style1.css" rel="stylesheet" type="text/css" />
+		<link href="/css/awesome-buttons.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<div id="ev_bg">
+			<div id="everything">
+				<div id="header">
+					<h1>Combat Log Parser</h1>
+				</div>
+				<div id="middle" class="horizontal">
+					<div id="left_column">
+						<div id="navigation">
+							<a href="/">Home</a>
+							<a href="/raids">Raid Listing</a>
+							<a href="/upload">Upload Combat Log</a>
+							<a href="/register">Register</a>
+							<a href="/">Undefined</a>
+						</div>
+					</div>
+					<div id="middle_column">
+						{% if user %}
+						<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
+						{% else %}
+						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
+						{% endif %}
+		  				<div class="date_break">{{ raid.name }}</div>
+						<div class="post">
+							<div class="post_body">
+								{{ raid.html }}
+							</div>
+						</div>
+					</div>
+				<div id="footer">
+					<div id="subnav"><!--<a href="#">SubNav1</a> | <a href="#">SubNav2</a> | <a href="#">SubNav3</a> | <a href="#">SubNav4</a> | <a href="#">SubNav5</a> | <a href="#">SubNav6</a>--></div>
+					<span class="copyright">World of Warcraft&reg; and Blizzard Entertainment&reg; are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. <br> These terms and all related materials, logos, and images are copyright &copy; Blizzard Entertainment. This site is in no way associated with or endorsed by Blizzard Entertainment&reg;.</span>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+
