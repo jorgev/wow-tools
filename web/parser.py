@@ -31,8 +31,11 @@ class Effect:
 		self.crits = 0
 		self.periodic_crits = 0
 		self.blocked = 0
+		self.dodged = 0
 		self.parried = 0
+		self.immune = 0
 		self.absorbed = 0
+		self.absorbed_amount = 0
 
 class Destination:
 	def __init__(self, id, name):
@@ -106,7 +109,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		num_fields = len(combat_fields)
 		if num_fields == 16:
 			amount = int(combat_fields[7])
-		elif num_fields == 19:
+		elif num_fields == 19 or num_fields == 14:
 			amount = int(combat_fields[10])
 		else:
 			amount = 0 # other type of field
@@ -160,7 +163,20 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 
 		# update effect stats
 		if effect_type == 'SPELL_MISSED':
-			effect.misses += 1
+			miss_reason = combat_fields[10]
+			if num_fields > 11:
+				miss_amount = int(combat_fields[11])
+			if miss_reason == 'ABSORB':
+				effect.absorbed += 1
+				effect.absorbed_amount += miss_amount
+			elif miss_reason == 'BLOCK':
+				effect.blocked += 1
+			elif miss_reason == 'DODGE':
+				effect.dodged += 1
+			elif miss_reason == 'PARRY':
+				effect.parried += 1
+			elif miss_reason == 'IMMUNE':
+				effect.immune += 1
 		elif effect_type in damage_fields:
 			if effect_type == 'SPELL_PERIODIC_DAMAGE':
 				effect.periodic_damage += amount
@@ -197,21 +213,35 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			timediff = destination.end_time - destination.start_time
 			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 			if destination.damage:
-				arr.append('%d damage' % destination.damage)
+				dps = float(destination.damage) / total_seconds
+				arr.append('%d damage (%0.1f DPS)' % (destination.damage, dps))
 			if destination.healing:
-				arr.append('%d healing' % destination.healing)
+				hps = float(destination.healing) / total_seconds
+				arr.append('%d healing (%0.1f HPS)' % (destination.healing, hps))
 			html += ', '.join(arr)
 			html += '</div>\n'
 			for effect in destination.effects.keys():
-				html += '<div class="effect">%s - ' % effect
+				html += '<div class="effect">%s' % effect
 				arr = []
 				val = destination.effects[effect]
 				if val.damage:
-					html += '%d damage, %d hits (%0.1f avg)' % (val.damage, val.hits, float(val.damage) / val.hits)
+					html += ', %d damage (%d hit(s) - %0.1f avg)' % (val.damage, val.hits, float(val.damage) / val.hits)
 				if val.periodic_damage:
-					html += '%d periodic damage, %d ticks (%0.1f avg)' % (val.periodic_damage, val.hits, float(val.periodic_damage) / val.hits)
+					html += ', %d periodic damage (%d ticks - %0.1f avg)' % (val.periodic_damage, val.ticks, float(val.periodic_damage) / val.ticks)
 				if val.healing:
-					html += '%d healing' % val.healing
+					html += ', %d healing (%d hits(s) - %0.1f avg)' % (val.healing, val.hits, float(val.healing) / val.hits)
+				if val.periodic_healing:
+					html += ', %d periodic healing (%d ticks - %0.1f avg)' % (val.periodic_healing, val.ticks, float(val.periodic_healing) / val.ticks)
+				if val.absorbed:
+					html += ', %d absorbed (%d amount)' % (val.absorbed, val.absorbed_amount)
+				if val.blocked:
+					html += ', %d blocked' % val.blocked
+				if val.dodged:
+					html += ', %d dodged' % val.dodged
+				if val.parried:
+					html += ', %d parried' % val.parried
+				if val.immune:
+					html += ', %d immune' % val.immune
 				html += ', '.join(arr)
 				html += '</div>\n'
 
@@ -219,5 +249,5 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	raid = Event(user=user, name=event_name, html=html)
 	raid.save()
 
-	return html
+	return raid.id
 
