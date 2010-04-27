@@ -58,6 +58,7 @@ def parse_data(user, event_name, file):
 			break;
 
 		# two spaces are used to split the date/time field from the actual combat data
+		line = line.strip()
 		major_fields = line.split('  ')
 		if len(major_fields) < 2:
 			continue
