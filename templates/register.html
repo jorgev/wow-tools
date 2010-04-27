@@ -31,14 +31,16 @@
 		  				<div class="date_break">Register</div>
 						<div class="post">
 							<div class="post_body">
+								<p>Please provide the information below to create your account. Email addresses are only used for password recovery. All fields are required.</p>
 								{% if message %}
 								<p class="warning">{{ message }}</p>
 								{% endif %}
 								<form method="post" enctype="multipart/form-data" action="./register">
-									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="64" maxlength="80" /></p>
+									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="40" maxlength="80" /></p>
 									<p><label for="email">Email address:</label> <input type="text" id="email" name="email" size="64" maxlength="80" /></p>
-									<p><label for="password">Password:</label> <input type="password" id="password" name="password" size="64" maxlength="80" /></p>
-									<p><input class="awesome gray" type="submit" id="submit" value="Register" /></p>
+									<p><label for="password">Password:</label> <input type="password" id="password" name="password" size="40" maxlength="80" /></p>
+									<p><label for="password2">Re-Enter Password:</label> <input type="password2" id="password2" name="password2" size="40" maxlength="80" /></p>
+									<p><input class="awesome blue" type="submit" id="submit" value="Register" /></p>
 								</form>
 							</div>
 						</div>

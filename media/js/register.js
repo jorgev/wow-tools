@@ -12,5 +12,12 @@ $(document).ready(function() {
 			.insertBefore('#submit');
 			return false;
 		}
+		var password2 = $('#password2').val();
+		if (password != password2) {
+			$('<p></p>').attr({'id': 'submit-message', 'class': 'warning'})
+			.append('Passwords do not match, please re-enter')
+			.insertBefore('#submit');
+			return false;
+		}
 	});
 });
