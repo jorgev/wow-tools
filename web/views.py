@@ -28,7 +28,7 @@ def raids(request):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
 	user = request.user
-	raids = Event.objects.filter(user=user)
+	raids = Event.objects.filter(user=user).order_by('-created')
 	return render_to_response('raids.html', { 'user': user.username, 'raids': raids })
 
 def raid_detail(request, raid_id):
