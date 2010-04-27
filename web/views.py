@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+import parser
 
 def index(request):
 	username = None
@@ -41,7 +42,7 @@ def upload(request):
 	if request.method == 'POST':
 		form = UploadForm(request.POST, request.FILES)
 		if form.is_valid():
-			request.FILES['file']
+			parser.parse_data(request.user, request.POST['name'], request.FILES['file'])
 			return HttpResponseRedirect('./raids')
 		else:
 			return render_to_response('upload.html', { 'message': 'There was an error processing the form, please try again' })
