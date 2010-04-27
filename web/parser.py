@@ -39,6 +39,7 @@ class Effect:
 		self.immune = 0
 		self.absorbed = 0
 		self.absorbed_amount = 0
+		self.reflected = 0
 
 class Destination:
 	def __init__(self, id, name):
@@ -225,7 +226,6 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			html += '</div>\n'
 			for effect in destination.effects.keys():
 				html += '<div class="effect">%s' % effect
-				arr = []
 				val = destination.effects[effect]
 				if val.damage:
 					html += ', %d damage (%d hit(s) - %0.1f avg)' % (val.damage, val.hits, float(val.damage) / val.hits)
@@ -245,7 +245,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					html += ', %d parried' % val.parried
 				if val.immune:
 					html += ', %d immune' % val.immune
-				html += ', '.join(arr)
+				if val.reflected:
+					html += ', %d reflected' % val.reflected
 				html += '</div>\n'
 
 	# create the raid object
