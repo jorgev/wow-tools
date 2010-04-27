@@ -22,10 +22,13 @@ class Effect:
 		self.name = name
 		self.healing = 0
 		self.periodic_healing = 0
+		self.overhealing = 0
 		self.damage = 0
 		self.periodic_damage = 0
 		self.hits = 0
+		self.crits = 0
 		self.ticks = 0
+		self.periodic_crits = 0
 		self.resists = 0
 		self.misses = 0
 		self.crits = 0
