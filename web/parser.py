@@ -14,6 +14,9 @@ healing_fields = ['SPELL_HEAL', 'SPELL_PERIODIC_HEAL']
 other_fields = ['SPELL_MISSED']
 tracked_fields = damage_fields + healing_fields + other_fields
 
+PET_MASK = 0x00001000
+GUARDIAN_MASK = 0x00002000
+
 class Effect:
 	def __init__(self, name):
 		self.name = name
@@ -45,9 +48,11 @@ class Source:
 		self.name = name
 		self.damage = 0
 		self.healing = 0
+		self.start_time = None
+		self.end_time = None
 		self.destinations = {}
 
-def parse_data(user, event_name, file):
+def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	# hashes for calculating stats
 	sources = {}
 
@@ -79,6 +84,14 @@ def parse_data(user, event_name, file):
 		if srcguid == 0 or dstguid == 0:
 			continue
 
+		# get flags and check for user-specified filters
+		srcflags = int(combat_fields[3], 16)
+		dstflags = int(combat_fields[6], 16)
+		if ignore_pets and ((srcflags & PET_MASK) or (dstflags & PET_MASK)):
+			continue
+		if ignore_guardians and ((srcflags & GUARDIAN_MASK) or (dstflags & GUARDIAN_MASK)):
+			continue
+
 		# strip surrounding double-quots from source and destination names
 		srcname = combat_fields[2][1:-1]
 		dstname = combat_fields[5][1:-1]
@@ -103,6 +116,17 @@ def parse_data(user, event_name, file):
 			source = Source(srcguid, srcname)
 			sources[srcguid] = source
 
+		# update stats for the source
+		if effect_type in damage_fields:
+			source.damage += amount
+		elif effect_type in healing_fields:
+			source.healing += amount
+
+		# timestamps, for dps/hps calculation
+		if not source.start_time:
+			source.start_time = timestamp
+		source.end_time = timestamp
+
 		# add or get destination
 		if dstguid in source.destinations:
 			destination = source.destinations[dstguid]
@@ -116,7 +140,7 @@ def parse_data(user, event_name, file):
 		elif effect_type in healing_fields:
 			destination.healing += amount
 
-		# destination gets the timestamps, for dps/hps calculation
+		# timestamps, for dps/hps calculation
 		if not destination.start_time:
 			destination.start_time = timestamp
 		destination.end_time = timestamp
@@ -151,7 +175,23 @@ def parse_data(user, event_name, file):
 	# we're done parsing, generate some html and save it to the database
 	html = ''
 	for source in sources.values():
-		html += '<div>%s<div>\n' % source.name
+		html += '<div class="src">%s - ' % source.name
+		arr = []
+		if source.damage:
+			arr.append('%d damage' % source.damage)
+		if source.healing:
+			arr.append('%d healing' % source.healing)
+		html += ', '.join(arr)
+		html += '</div>\n'
+		for destination in source.destinations.values():
+			html += '<div class="dst">%s - ' % destination.name
+			arr = []
+			if destination.damage:
+				arr.append('%d damage' % destination.damage)
+			if destination.healing:
+				arr.append('%d healing' % destination.healing)
+			html += ', '.join(arr)
+			html += '</div>\n'
 
 	# create the raid object
 	raid = Event(user=user, name=event_name, html=html)

@@ -14,6 +14,8 @@ class Event(models.Model):
 
 class UploadForm(forms.Form):
 	name = forms.CharField(max_length=255)
+	ignore_pets = forms.BooleanField()
+	ignore_guardians = forms.BooleanField()
 	file = forms.FileField()
 
 class LoginForm(forms.Form):
