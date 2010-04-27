@@ -26,12 +26,14 @@ def register(request):
 def raids(request):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
-	return render_to_response('raids.html', {})
+	username = request.user.username
+	return render_to_response('raids.html', { 'user': username })
 
 def raid_detail(request):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
-	return render_to_response('raid_detail.html', {})
+	username = request.user.username
+	return render_to_response('raid_detail.html', { 'user': username })
 
 def upload(request):
 	if not request.user.is_authenticated():
@@ -44,7 +46,8 @@ def upload(request):
 		else:
 			return render_to_response('upload.html', { 'message': 'There was an error processing the form, please try again' })
 	else:
-		return render_to_response('upload.html', {})
+		username = request.user.username
+		return render_to_response('upload.html', { 'user': username })
 
 def login(request):
 	if request.method == 'POST':

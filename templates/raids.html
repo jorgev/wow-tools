@@ -5,6 +5,7 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<meta name="description" content="World of Warcraft Combat Log Parser" />
 		<title>World of Warcraft Combat Log Parser</title>
+		<link rel="icon" type="image/png" href="/images/icon.png" />
 		<link href="css/style1.css" rel="stylesheet" type="text/css" />
 		<link href="css/awesome-buttons.css" rel="stylesheet" type="text/css" />
 	</head>
@@ -25,6 +26,11 @@
 						</div>
 					</div>
 					<div id="middle_column">
+						{% if user %}
+						<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
+						{% else %}
+						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
+						{% endif %}
 					</div>
 				<div id="footer">
 					<div id="subnav"><!--<a href="#">SubNav1</a> | <a href="#">SubNav2</a> | <a href="#">SubNav3</a> | <a href="#">SubNav4</a> | <a href="#">SubNav5</a> | <a href="#">SubNav6</a>--></div>
