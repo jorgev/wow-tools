@@ -31,10 +31,10 @@
 						{% else %}
 						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
 						{% endif %}
-		  				<div class="date_break">{{ raid.name }}</div>
+		  				<div class="date_break">{{ raid.name|safe }}</div>
 						<div class="post">
 							<div class="post_body">
-								{{ raid.html }}
+								{% autoescape off %}{{ raid.html }}{% endautoescape %}
 							</div>
 						</div>
 					</div>

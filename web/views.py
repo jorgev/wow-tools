@@ -74,8 +74,10 @@ def login(request):
 		else:
 			return render_to_response('login.html', { 'message': 'There was an error processing the form, please try again' })
 	else:
-		next = request.GET['next']
-		return render_to_response('login.html', { 'next': next })
+		if request.GET.has_key('next'):
+			return render_to_response('login.html', { 'next': request.GET['next'] })
+		else:
+			return render_to_response('login.html', {})
 
 def logout(request):
 	auth.logout(request)
