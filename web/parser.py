@@ -21,7 +21,9 @@ class Effect:
 	def __init__(self, name):
 		self.name = name
 		self.healing = 0
+		self.periodic_healing = 0
 		self.damage = 0
+		self.periodic_damage = 0
 		self.hits = 0
 		self.ticks = 0
 		self.resists = 0
@@ -160,16 +162,18 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		if effect_type == 'SPELL_MISSED':
 			effect.misses += 1
 		elif effect_type in damage_fields:
-			effect.damage += amount
 			if effect_type == 'SPELL_PERIODIC_DAMAGE':
+				effect.periodic_damage += amount
 				effect.ticks += 1
 			else:
+				effect.damage += amount
 				effect.hits += 1
 		elif effect_type in healing_fields:
-			effect.healing += amount
 			if effect_type == 'SPELL_PERIODIC_HEAL':
+				effect.periodic_healing += amount
 				effect.ticks += 1
 			else:
+				effect.healing += amount
 				effect.hits += 1
 					
 	# we're done parsing, generate some html and save it to the database
@@ -177,21 +181,39 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	for source in sources.values():
 		html += '<div class="src">%s - ' % source.name
 		arr = []
+		timediff = source.end_time - source.start_time
+		total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 		if source.damage:
-			arr.append('%d damage' % source.damage)
+			dps = float(source.damage) / total_seconds
+			arr.append('%d damage (%0.1f DPS)' % (source.damage, dps))
 		if source.healing:
-			arr.append('%d healing' % source.healing)
+			hps = float(source.healing) / total_seconds
+			arr.append('%d healing (%0.1f HPS)' % (source.healing, hps))
 		html += ', '.join(arr)
 		html += '</div>\n'
 		for destination in source.destinations.values():
 			html += '<div class="dst">%s - ' % destination.name
 			arr = []
+			timediff = destination.end_time - destination.start_time
+			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 			if destination.damage:
 				arr.append('%d damage' % destination.damage)
 			if destination.healing:
 				arr.append('%d healing' % destination.healing)
 			html += ', '.join(arr)
 			html += '</div>\n'
+			for effect in destination.effects.keys():
+				html += '<div class="effect">%s - ' % effect
+				arr = []
+				val = destination.effects[effect]
+				if val.damage:
+					html += '%d damage, %d hits (%0.1f avg)' % (val.damage, val.hits, float(val.damage) / val.hits)
+				if val.periodic_damage:
+					html += '%d periodic damage, %d ticks (%0.1f avg)' % (val.periodic_damage, val.hits, float(val.periodic_damage) / val.hits)
+				if val.healing:
+					html += '%d healing' % val.healing
+				html += ', '.join(arr)
+				html += '</div>\n'
 
 	# create the raid object
 	raid = Event(user=user, name=event_name, html=html)
