@@ -27,14 +27,16 @@ def register(request):
 def raids(request):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
-	username = request.user.username
-	return render_to_response('raids.html', { 'user': username })
+	user = request.user
+	raids = Event.objects.filter(user=user)
+	return render_to_response('raids.html', { 'user': user.username, 'raids': raids })
 
-def raid_detail(request):
+def raid_detail(request, raid_id):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
-	username = request.user.username
-	return render_to_response('raid_detail.html', { 'user': username })
+	user = request.user
+	raid = Event.objects.filter(user=user, id=raid_id)[0]
+	return render_to_response('raid_detail.html', { 'user': user.username, 'raid': raid })
 
 def upload(request):
 	if not request.user.is_authenticated():
