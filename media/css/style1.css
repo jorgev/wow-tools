@@ -38,7 +38,7 @@ body
 {
 	clear: both;
 	background: url(/images/border_b_2.gif) repeat-x;
-	padding: 20px 10px;
+	padding: 10px 10px;
 }	
 #left_column
 {
@@ -101,7 +101,7 @@ body
 {
 	background: url(/images/metal_dark.jpg);
 	border: 1px solid #0a0f51;
-	margin-bottom: 35px;
+	margin-bottom: 24px;
 	line-height: 18px;
 } 
 .post h1
@@ -201,5 +201,10 @@ a
 .effect
 {
 	padding-left: 64px;
+}
+.ads
+{
+	padding: 20px;
+	text-align: center;
 }
 
