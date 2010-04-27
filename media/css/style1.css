@@ -63,28 +63,105 @@ body
 	text-decoration: none;
 	line-height: 25px;
 }
-#navigation a:hover { background-position:0 bottom;  }
-.horizontal #navigation a { float:left; } 
-#more_information { padding-top:15px;}
-#middle_column { float:left; width:50%; margin:0px 20px; }
-#middle_column.two_column { float:left; width:75%; } 
-.horizontal #middle_column { width:auto; float:none; }
-.date_break { font-size:19px; border-bottom:1px solid #013996; margin-bottom:10px; }
-.post { background:url(/images/metal_dark.jpg); border:1px solid #0a0f51; margin-bottom:35px; line-height:18px; } 
-.post h1 { background:url(/images/title_bg2.gif) repeat-x #0d2368; padding:2px 10px; margin:0; font-size:15px; color:white;} 
-.post_body { padding:5px 15px; }
-.post .postedby { float:left; clear:both; }
-.post .timestamp { float:right }
-ul { margin:20px; padding:10px; }
-li { list-style:none; background:url(/images/bullet2.gif) 0 5px no-repeat;  padding-left:30px; line-height:25px;  }
-.list_left, .list_right { width:48%; float:left }
-.post_info { clear:both; padding-top:10px; }
-#right_column { width:26%; float:left; }
-.box { background:url(/images/cloudy_bg.jpg); border:1px solid #0a0f51; margin:10px 0 25px 0; padding:10px; }
+#navigation a:hover
+{
+	background-position: 0 bottom;
+}
+.horizontal #navigation a
+{
+	float: left;
+} 
+#more_information
+{
+	padding-top: 15px;
+}
+#middle_column
+{
+	float: left;
+	width: 50%;
+	margin: 0px 20px;
+}
+#middle_column.two_column
+{
+	float: left;
+	width: 75%;
+} 
+.horizontal #middle_column
+{
+	width: auto;
+	float: none;
+}
+.date_break
+{
+	font-size: 19px;
+	border-bottom: 1px solid #013996;
+	margin-bottom: 10px;
+}
+.post
+{
+	background: url(/images/metal_dark.jpg);
+	border: 1px solid #0a0f51;
+	margin-bottom: 35px;
+	line-height: 18px;
+} 
+.post h1
+{
+	background: url(/images/title_bg2.gif) repeat-x #0d2368;
+	padding: 2px 10px;
+	margin: 0;
+	font-size: 15px;
+	color: white;
+} 
+.post_body
+{
+	padding: 5px 15px;
+}
+.post .postedby
+{
+	float: left;
+	clear: both;
+}
+.post .timestamp
+{
+	float: right;
+}
+ul
+{
+	margin: 20px; padding: 10px;
+}
+li
+{
+	list-style: none;
+	background: url(/images/bullet2.gif) 0 5px no-repeat;
+	padding-left: 30px;
+	line-height: 25px;
+}
+.list_left, .list_right
+{
+	width: 48%;
+	float: left;
+}
+.post_info
+{
+	clear: both;
+	padding-top: 10px;
+}
+#right_column
+{
+	width: 26%;
+	float: left;
+}
+.box
+{
+	background: url(/images/cloudy_bg.jpg);
+	border: 1px solid #0a0f51;
+	margin: 10px 0 25px 0;
+	padding: 10px;
+}
 #footer
 {
 	clear: both;
-	padding: 20px
+	padding: 20px;
 }
 #subnav
 {
