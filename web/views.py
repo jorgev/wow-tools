@@ -24,6 +24,16 @@ def register(request):
 	else:
 		return render_to_response('register.html', {})
 
+def contact(request):
+	if request.method == 'POST':
+		form = ContactForm(request.POST)
+		if form.is_valid():
+			return HttpResponseRedirect('./')
+		else:
+			return render_to_response('contact.html', { 'message': 'There was an error processing the form, please try again' })
+	else:
+		return render_to_response('contact.html', {})
+
 def raids(request):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
