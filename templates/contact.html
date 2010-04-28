@@ -28,6 +28,11 @@
 						</div>
 					</div>
 					<div id="middle_column">
+						{% if user %}
+						<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
+						{% else %}
+						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
+						{% endif %}
 		  				<div class="date_break">Contact Us</div>
 						<div class="post">
 							<div class="post_body">
@@ -36,10 +41,8 @@
 								<p class="warning">{{ message }}</p>
 								{% endif %}
 								<form method="post" enctype="multipart/form-data" action="./contact">
-									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="40" maxlength="80" /></p>
-									<p><label for="email">Email address:</label> <input type="text" id="email" name="email" size="64" maxlength="80" /></p>
-									<p><label for="subject">Subject:</label> <input type="text" id="subject" name="subject" size="40" maxlength="80" /></p>
-									<p><label for="body">Message:</label> <textarea id="body" name="body"></textarea></p>
+									<p><label for="subject">Subject:</label> <input type="text" id="subject" name="subject" size="80" maxlength="80" /></p>
+									<p><textarea id="body" name="body" cols="80" rows="12"></textarea></p>
 									<p><input class="awesome blue" type="submit" id="submit" value="Send" /></p>
 								</form>
 							</div>

@@ -1,6 +1,6 @@
 # Create your views here.
 from django.shortcuts import render_to_response
-from web.models import Event, UploadForm, LoginForm, RegisterForm
+from web.models import Event, UploadForm, LoginForm, RegisterForm, ContactForm
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import auth
 from django.contrib.auth.models import User
@@ -25,6 +25,9 @@ def register(request):
 		return render_to_response('register.html', {})
 
 def contact(request):
+	if not request.user.is_authenticated():
+		return HttpResponseRedirect('/login?next=%s' % request.path)
+	user = request.user
 	if request.method == 'POST':
 		form = ContactForm(request.POST)
 		if form.is_valid():
@@ -32,7 +35,7 @@ def contact(request):
 		else:
 			return render_to_response('contact.html', { 'message': 'There was an error processing the form, please try again' })
 	else:
-		return render_to_response('contact.html', {})
+		return render_to_response('contact.html', { 'user': user.username })
 
 def raids(request):
 	if not request.user.is_authenticated():
