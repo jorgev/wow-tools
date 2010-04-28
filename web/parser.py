@@ -29,8 +29,9 @@ class Effect:
 		self.crits = 0
 		self.ticks = 0
 		self.periodic_crits = 0
-		self.resists = 0
-		self.misses = 0
+		self.resisted = 0
+		self.resisted_amount = 0
+		self.missed = 0
 		self.crits = 0
 		self.periodic_crits = 0
 		self.blocked = 0
@@ -198,6 +199,9 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			if miss_reason == 'ABSORB':
 				effect.absorbed += 1
 				effect.absorbed_amount += miss_amount
+			elif miss_reason == 'RESIST':
+				effect.resisted += 1
+				effect.resisted_amount += miss_amount
 			elif miss_reason == 'BLOCK':
 				effect.blocked += 1
 				effect.blocked_amount += miss_amount
@@ -207,6 +211,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				effect.parried += 1
 			elif miss_reason == 'IMMUNE':
 				effect.immune += 1
+			elif miss_reason == 'MISS':
+				effect.missed += 1
 
 		# or maybe we're dealing with some type of damage field
 		elif effect_type in damage_fields:
@@ -280,6 +286,10 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					html += ', %d absorbed (%d amount)' % (val.absorbed, val.absorbed_amount)
 				if val.blocked:
 					html += ', %d blocked (%d amount)' % (val.blocked, val.blocked_amount)
+				if val.resisted:
+					html += ', %d resisted' % val.resisted
+				if val.missed:
+					html += ', %d missed' % val.missed
 				if val.dodged:
 					html += ', %d dodged' % val.dodged
 				if val.parried:
