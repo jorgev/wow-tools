@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 import parser
 
 def index(request):
@@ -31,6 +32,7 @@ def contact(request):
 	if request.method == 'POST':
 		form = ContactForm(request.POST)
 		if form.is_valid():
+			send_mail(request.POST['subject'], request.POST['body'], 'jorge.velazquez@gmail.com', ['jorge.velazquez@gmail.com'])
 			return HttpResponseRedirect('./')
 		else:
 			return render_to_response('contact.html', { 'message': 'There was an error processing the form, please try again' })
