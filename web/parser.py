@@ -266,8 +266,13 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				html += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
 			html += '</div>\n'
 			for effect in destination.effects.keys():
-				html += '<div class="effect">%s' % effect
 				val = destination.effects[effect]
+				if val.damage or val.periodic_damage:
+					html += '<div class="effect damage">%s' % effect
+				elif val.healing or val.periodic_healing:
+					html += '<div class="effect healing">%s' % effect
+				else:
+					html += '<div class="effect">%s' % effect
 				if val.damage:
 					html += ', %d damage (%d hit(s)' % (val.damage, val.hits)
 					if val.crits:

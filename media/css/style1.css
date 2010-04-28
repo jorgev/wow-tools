@@ -207,4 +207,12 @@ a
 	padding: 20px;
 	text-align: center;
 }
+.damage
+{
+	color: red;
+}
+.healing
+{
+	color: green;
+}
 
