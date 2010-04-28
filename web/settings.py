@@ -81,5 +81,3 @@ INSTALLED_APPS = (
 	'web',
 )
 
-LOGIN_URL = '/login'
-

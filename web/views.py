@@ -32,7 +32,7 @@ def contact(request):
 	if request.method == 'POST':
 		form = ContactForm(request.POST)
 		if form.is_valid():
-			send_mail(request.POST['subject'], request.POST['body'], 'jorge.velazquez@gmail.com', ['jorge.velazquez@gmail.com'])
+			send_mail(request.POST['subject'], request.POST['body'], 'jorge@d510mo.gateway.2wire.net', ['jorge.velazquez@gmail.com'])
 			return HttpResponseRedirect('./')
 		else:
 			return render_to_response('contact.html', { 'message': 'There was an error processing the form, please try again' })

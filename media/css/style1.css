@@ -193,9 +193,11 @@ a
 }
 .src
 {
+	font-weight: bold;
 }
 .dst
 {
+	font-style: italic;
 	padding-left: 32px;
 }
 .effect
