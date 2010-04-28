@@ -273,13 +273,25 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				html += '<div class="effect">%s' % effect
 				val = destination.effects[effect]
 				if val.damage:
-					html += ', %d damage (%d hit(s), %d crit(s) - %0.1f avg)' % (val.damage, val.hits, val.crits, float(val.damage) / val.hits)
+					html += ', %d damage (%d hit(s)' % (val.damage, val.hits)
+					if val.crits:
+						html += ', %d crit(s)' % val.crits
+					html += ' - %0.1f avg)' %  (float(val.damage) / val.hits)
 				if val.periodic_damage:
-					html += ', %d periodic damage (%d ticks, %d crit(s) - %0.1f avg)' % (val.periodic_damage, val.ticks, val.periodic_crits, float(val.periodic_damage) / val.ticks)
+					html += ', %d periodic damage (%d ticks' % (val.periodic_damage, val.ticks)
+					if val.periodic_crits:
+						html += ', %d crit(s)' % val.periodic_crits
+					html += ' - %0.1f avg)' % (float(val.periodic_damage) / val.ticks)
 				if val.healing:
-					html += ', %d healing (%d hits(s), %d crit(s) - %0.1f avg)' % (val.healing, val.hits, val.crits, float(val.healing) / val.hits)
+					html += ', %d healing (%d hits(s)' % (val.healing, val.hits)
+					if val.crits:
+						html += ', %d crit(s)' % val.crits
+					html += ' - %0.1f avg)' % (float(val.healing) / val.hits)
 				if val.periodic_healing:
-					html += ', %d periodic healing (%d ticks, %d crit(s) - %0.1f avg)' % (val.periodic_healing, val.ticks, val.periodic_crits, float(val.periodic_healing) / val.ticks)
+					html += ', %d periodic healing (%d ticks' % (val.periodic_healing, val.ticks)
+					if val.periodic_crits:
+						html += ', %d crit(s)' % val.periodic_crits
+					html += ' - %0.1f avg)' % (float(val.periodic_healing) / val.ticks)
 				if val.overhealing:
 					html += ', %d overhealing (%0.1f %%)' % (val.overhealing, val.overhealing * 100.0 / (val.healing + val.periodic_healing))
 				if val.absorbed:
