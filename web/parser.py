@@ -244,30 +244,26 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	# we're done parsing, generate some html and save it to the database
 	html = ''
 	for source in sources.values():
-		html += '<div class="src">%s - ' % source.name
-		arr = []
+		html += '<div class="src">%s' % source.name
 		timediff = source.end_time - source.start_time
 		total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 		if source.damage:
 			dps = float(source.damage) / total_seconds
-			arr.append('%d damage (%0.1f DPS)' % (source.damage, dps))
+			html += ', %d damage (%0.1f DPS)' % (source.damage, dps)
 		if source.healing:
 			hps = float(source.healing) / total_seconds
-			arr.append('%d healing (%0.1f HPS)' % (source.healing, hps))
-		html += ', '.join(arr)
+			html += ', %d healing (%0.1f HPS)' % (source.healing, hps)
 		html += '</div>\n'
 		for destination in source.destinations.values():
-			html += '<div class="dst">%s - ' % destination.name
-			arr = []
+			html += '<div class="dst">%s' % destination.name
 			timediff = destination.end_time - destination.start_time
 			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 			if destination.damage:
 				dps = float(destination.damage) / total_seconds
-				arr.append('%d damage (%0.1f DPS)' % (destination.damage, dps))
+				html += ', %d damage (%0.1f DPS)' % (destination.damage, dps)
 			if destination.healing:
 				hps = float(destination.healing) / total_seconds
-				arr.append('%d healing (%0.1f HPS)' % (destination.healing, hps))
-			html += ', '.join(arr)
+				html += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
 			html += '</div>\n'
 			for effect in destination.effects.keys():
 				html += '<div class="effect">%s' % effect
