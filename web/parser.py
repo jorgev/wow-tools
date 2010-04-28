@@ -109,14 +109,31 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		# get the timestamp (NOTE: year is not supplied in the combat log, this will cause problems if log file crosses a year boundary)
 		timestamp = datetime.datetime.strptime(date_time, '%m/%d %H:%M:%S.%f')
 
-		# depending on how many fields we have, damage/healing amount could be in two places
+		# depending on how many fields we have, combat data could be in different places
 		num_fields = len(combat_fields)
-		if num_fields == 16:
+		crit = False
+		overheal = 0
+		if num_fields == 16: # this is a swing damage entry
 			amount = int(combat_fields[7])
-		elif num_fields == 19 or num_fields == 14:
+			if combat_fields[13] == '1':
+				crit = True
+		elif num_fields == 19: # this is spell damage
 			amount = int(combat_fields[10])
+			if combat_fields[16] == '1':
+				crit = True
+		elif num_fields == 14: # this is spell healing
+			amount = int(combat_fields[10])
+			overheal = int(combat_fields[11])
+			if combat_fields[13] == '1':
+				crit = True
 		else:
 			amount = 0 # other type of field
+
+		# special case
+		if effect_type == 'SWING_DAMAGE':
+			effect_name = 'Swing'
+		else:
+			effect_name = combat_fields[8][1:-1]
 
 		# add or get source
 		if srcguid in sources:
@@ -155,10 +172,6 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		destination.end_time = timestamp
 
 		# add or get effect
-		if effect_type == 'SWING_DAMAGE':
-			effect_name = "Swing"
-		else:
-			effect_name = combat_fields[8][1:-1]
 		if effect_name in destination.effects:
 			effect = destination.effects[effect_name]
 		else:
@@ -185,16 +198,25 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			if effect_type == 'SPELL_PERIODIC_DAMAGE':
 				effect.periodic_damage += amount
 				effect.ticks += 1
+				if crit:
+					effect.periodic_crits += 1
 			else:
 				effect.damage += amount
 				effect.hits += 1
+				if crit:
+					effect.crits += 1
 		elif effect_type in healing_fields:
 			if effect_type == 'SPELL_PERIODIC_HEAL':
 				effect.periodic_healing += amount
 				effect.ticks += 1
+				if crit:
+					effect.periodic_crits += 1
 			else:
 				effect.healing += amount
 				effect.hits += 1
+				if crit:
+					effect.crits += 1
+			effect.overhealing += overheal
 					
 	# we're done parsing, generate some html and save it to the database
 	html = ''
@@ -235,6 +257,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					html += ', %d healing (%d hits(s) - %0.1f avg)' % (val.healing, val.hits, float(val.healing) / val.hits)
 				if val.periodic_healing:
 					html += ', %d periodic healing (%d ticks - %0.1f avg)' % (val.periodic_healing, val.ticks, float(val.periodic_healing) / val.ticks)
+				if val.overhealing:
+					html += ', %d overhealing (%0.1f %%)' % (val.overhealing, val.overhealing * 100.0 / (val.healing + val.periodic_healing))
 				if val.absorbed:
 					html += ', %d absorbed (%d amount)' % (val.absorbed, val.absorbed_amount)
 				if val.blocked:
