@@ -11,8 +11,8 @@ from web.models import Event
 
 damage_fields = ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE', 'SWING_DAMAGE', 'RANGE_DAMAGE']
 healing_fields = ['SPELL_HEAL', 'SPELL_PERIODIC_HEAL']
-other_fields = ['SPELL_MISSED']
-tracked_fields = damage_fields + healing_fields + other_fields
+miss_fields = ['SPELL_MISSED', 'SWING_MISSED', 'RANGE_MISSED']
+tracked_fields = damage_fields + healing_fields + miss_fields
 
 PET_MASK = 0x00001000
 GUARDIAN_MASK = 0x00002000
@@ -34,6 +34,7 @@ class Effect:
 		self.crits = 0
 		self.periodic_crits = 0
 		self.blocked = 0
+		self.blocked_amount = 0
 		self.dodged = 0
 		self.parried = 0
 		self.immune = 0
@@ -130,7 +131,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			amount = 0 # other type of field
 
 		# special case
-		if effect_type == 'SWING_DAMAGE':
+		if effect_type == 'SWING_DAMAGE' or effect_type == 'SWING_MISSED':
 			effect_name = 'Swing'
 		else:
 			effect_name = combat_fields[8][1:-1]
@@ -179,21 +180,35 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			destination.effects[effect_name] = effect
 
 		# update effect stats
-		if effect_type == 'SPELL_MISSED':
-			miss_reason = combat_fields[10]
-			if num_fields > 11:
-				miss_amount = int(combat_fields[11])
+		if effect_type in miss_fields:
+
+			# if this is a miss, there are various types of misses and, depending
+			# on the miss type, the reason and amount can be in two places
+			miss_amount = 0
+			if effect_type == 'SWING_MISSED':
+				miss_reason = combat_fields[7]
+				if num_fields > 8:
+					miss_amount = int(combat_fields[8])
+			else:
+				miss_reason = combat_fields[10]
+				if num_fields > 11:
+					miss_amount = int(combat_fields[11])
+
+			# now that we know the miss type and amount, add it to the effect stats
 			if miss_reason == 'ABSORB':
 				effect.absorbed += 1
 				effect.absorbed_amount += miss_amount
 			elif miss_reason == 'BLOCK':
 				effect.blocked += 1
+				effect.blocked_amount += miss_amount
 			elif miss_reason == 'DODGE':
 				effect.dodged += 1
 			elif miss_reason == 'PARRY':
 				effect.parried += 1
 			elif miss_reason == 'IMMUNE':
 				effect.immune += 1
+
+		# or maybe we're dealing with some type of damage field
 		elif effect_type in damage_fields:
 			if effect_type == 'SPELL_PERIODIC_DAMAGE':
 				effect.periodic_damage += amount
@@ -205,6 +220,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				effect.hits += 1
 				if crit:
 					effect.crits += 1
+
+		# or could be a healing field
 		elif effect_type in healing_fields:
 			if effect_type == 'SPELL_PERIODIC_HEAL':
 				effect.periodic_healing += amount
@@ -250,19 +267,19 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				html += '<div class="effect">%s' % effect
 				val = destination.effects[effect]
 				if val.damage:
-					html += ', %d damage (%d hit(s) - %0.1f avg)' % (val.damage, val.hits, float(val.damage) / val.hits)
+					html += ', %d damage (%d hit(s), %d crit(s) - %0.1f avg)' % (val.damage, val.hits, val.crits, float(val.damage) / val.hits)
 				if val.periodic_damage:
-					html += ', %d periodic damage (%d ticks - %0.1f avg)' % (val.periodic_damage, val.ticks, float(val.periodic_damage) / val.ticks)
+					html += ', %d periodic damage (%d ticks, %d crit(s) - %0.1f avg)' % (val.periodic_damage, val.ticks, val.periodic_crits, float(val.periodic_damage) / val.ticks)
 				if val.healing:
-					html += ', %d healing (%d hits(s) - %0.1f avg)' % (val.healing, val.hits, float(val.healing) / val.hits)
+					html += ', %d healing (%d hits(s), %d crit(s) - %0.1f avg)' % (val.healing, val.hits, val.crits, float(val.healing) / val.hits)
 				if val.periodic_healing:
-					html += ', %d periodic healing (%d ticks - %0.1f avg)' % (val.periodic_healing, val.ticks, float(val.periodic_healing) / val.ticks)
+					html += ', %d periodic healing (%d ticks, %d crit(s) - %0.1f avg)' % (val.periodic_healing, val.ticks, val.periodic_crits, float(val.periodic_healing) / val.ticks)
 				if val.overhealing:
 					html += ', %d overhealing (%0.1f %%)' % (val.overhealing, val.overhealing * 100.0 / (val.healing + val.periodic_healing))
 				if val.absorbed:
 					html += ', %d absorbed (%d amount)' % (val.absorbed, val.absorbed_amount)
 				if val.blocked:
-					html += ', %d blocked' % val.blocked
+					html += ', %d blocked (%d amount)' % (val.blocked, val.blocked_amount)
 				if val.dodged:
 					html += ', %d dodged' % val.dodged
 				if val.parried:
