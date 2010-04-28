@@ -243,6 +243,58 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					
 	# we're done parsing, generate some html and save it to the database
 	html = ''
+
+	# damage chart...everyone loves charts
+	chart_data = {}
+	raid_total = 0
+	for key in sources.keys():
+		# only charting player damage
+		if (key & 0x0070000000000000) != 0:
+			continue
+
+		# create a hash that is keyed by player name, value is damage
+		source = sources[key]
+		if source.damage:
+			chart_data[source.name] = source.damage
+			raid_total += source.damage
+	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chtt=Overall+Damage&amp;chts=FF0000&amp;chs=600x400&amp;chd=t:'
+	chd = []
+	chl = []
+	for key in chart_data.keys():
+		percentage = '%0.1f' % (chart_data[key] * 100.0 / raid_total)
+		chl.append('%s (%s%%)' % (key, percentage))
+		chd.append(percentage)
+	chart_url += ','.join(chd)
+	chart_url += '&amp;chl='
+	chart_url += '|'.join(chl)
+	html += '<div class="chart"><img width="600" height="400" alt="Damage Chart" src="%s"/></div>' % chart_url
+
+	# healing chart
+	chart_data = {}
+	raid_total = 0
+	for key in sources.keys():
+		# only charting player damage
+		if (key & 0x0070000000000000) != 0:
+			continue
+
+		# create a hash that is keyed by player name, value is damage
+		source = sources[key]
+		if source.healing:
+			chart_data[source.name] = source.healing
+			raid_total += source.healing
+	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chtt=Overall+Healing&amp;chts=00FF00&amp;chs=600x400&amp;chd=t:'
+	chd = []
+	chl = []
+	for key in chart_data.keys():
+		percentage = '%0.1f' % (chart_data[key] * 100.0 / raid_total)
+		chl.append('%s (%s%%)' % (key, percentage))
+		chd.append(percentage)
+	chart_url += ','.join(chd)
+	chart_url += '&amp;chl='
+	chart_url += '|'.join(chl)
+	html += '<div class="chart"><img width="600" height="400" alt="Healing Chart" src="%s"/></div>' % chart_url
+
+	# now dump the stats out in text format
 	for source in sources.values():
 		html += '<div class="src">%s' % source.name
 		timediff = source.end_time - source.start_time
