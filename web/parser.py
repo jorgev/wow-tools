@@ -261,7 +261,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			raid_total += source.damage
 	items = chart_data.items()
 	items.sort(key=itemgetter(1), reverse=True)
-	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chtt=Overall+Damage&amp;chts=FF0000&amp;chs=600x400&amp;chd=t:'
+	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chf=bg,s,00000000&amp;chtt=Overall+Damage&amp;chts=FF0000&amp;chs=600x400&amp;chd=t:'
 	chd = []
 	chl = []
 	for item in items:
@@ -288,7 +288,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			raid_total += source.healing
 	items = chart_data.items()
 	items.sort(key=itemgetter(1), reverse=True)
-	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chtt=Overall+Healing&amp;chts=00FF00&amp;chs=600x400&amp;chd=t:'
+	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chf=bg,s,00000000&amp;chtt=Overall+Healing&amp;chts=00FF00&amp;chs=600x400&amp;chd=t:'
 	chd = []
 	chl = []
 	for item in items:
