@@ -7,6 +7,10 @@ body
 	color: #d8f2ff;
 	background: url(/images/bg2.jpg) 50% 0 #114576 repeat-x;
 	background-attachment: fixed;
+}
+td
+{
+	padding: 2px 8px;
 } 
 #ev_bg
 {
