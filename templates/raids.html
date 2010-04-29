@@ -40,7 +40,7 @@
 									</thead>
 									<tbody>
 										{% for raid in raids %}
-										<tr><td><a href="/raids/{{ raid.id }}/">{{ raid.name }}</a></td><td>{{ raid.created|date:'D M d' }}</td></tr>
+										<tr><td><a href="/raids/{{ raid.id }}/">{{ raid.name }}</a> <button class="awesome blue tiny">Delete</button></td><td>{{ raid.created|date:'D M d' }}</td></tr>
 										{% endfor %}
 									</tbody>
 								</table>
