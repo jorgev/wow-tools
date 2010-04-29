@@ -7,6 +7,7 @@ Created by Jorge Velázquez on 2010-04-24.
 """
 
 import datetime
+from operator import itemgetter
 from web.models import Event
 
 damage_fields = ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE', 'SWING_DAMAGE', 'RANGE_DAMAGE']
@@ -245,6 +246,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	html = ''
 
 	# damage chart...everyone loves charts
+	html += '<h3>Charts</h3>\n'
 	chart_data = {}
 	raid_total = 0
 	for key in sources.keys():
@@ -257,17 +259,19 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		if source.damage:
 			chart_data[source.name] = source.damage
 			raid_total += source.damage
+	items = chart_data.items()
+	items.sort(key=itemgetter(1), reverse=True)
 	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chtt=Overall+Damage&amp;chts=FF0000&amp;chs=600x400&amp;chd=t:'
 	chd = []
 	chl = []
-	for key in chart_data.keys():
-		percentage = '%0.1f' % (chart_data[key] * 100.0 / raid_total)
-		chl.append('%s (%s%%)' % (key, percentage))
+	for item in items:
+		percentage = '%0.1f' % (item[1] * 100.0 / raid_total)
+		chl.append('%s (%s%%)' % (item[0], percentage))
 		chd.append(percentage)
 	chart_url += ','.join(chd)
 	chart_url += '&amp;chl='
 	chart_url += '|'.join(chl)
-	html += '<div class="chart"><img width="600" height="400" alt="Damage Chart" src="%s"/></div>' % chart_url
+	html += '<div class="chart"><img width="600" height="400" alt="Damage Chart" src="%s"/></div>\n' % chart_url
 
 	# healing chart
 	chart_data = {}
@@ -282,19 +286,22 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		if source.healing:
 			chart_data[source.name] = source.healing
 			raid_total += source.healing
+	items = chart_data.items()
+	items.sort(key=itemgetter(1), reverse=True)
 	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chtt=Overall+Healing&amp;chts=00FF00&amp;chs=600x400&amp;chd=t:'
 	chd = []
 	chl = []
-	for key in chart_data.keys():
-		percentage = '%0.1f' % (chart_data[key] * 100.0 / raid_total)
-		chl.append('%s (%s%%)' % (key, percentage))
+	for item in items:
+		percentage = '%0.1f' % (item[1] * 100.0 / raid_total)
+		chl.append('%s (%s%%)' % (item[0], percentage))
 		chd.append(percentage)
 	chart_url += ','.join(chd)
 	chart_url += '&amp;chl='
 	chart_url += '|'.join(chl)
-	html += '<div class="chart"><img width="600" height="400" alt="Healing Chart" src="%s"/></div>' % chart_url
+	html += '<div class="chart"><img width="600" height="400" alt="Healing Chart" src="%s"/></div>\n' % chart_url
 
 	# now dump the stats out in text format
+	html += '<h3>Combat Details</h3>\n'
 	for source in sources.values():
 		html += '<div class="src">%s' % source.name
 		timediff = source.end_time - source.start_time

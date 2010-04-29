@@ -8,6 +8,10 @@ body
 	background: url(/images/bg2.jpg) 50% 0 #114576 repeat-x;
 	background-attachment: fixed;
 }
+h3
+{
+	text-align: center;
+}
 td
 {
 	padding: 2px 8px;
