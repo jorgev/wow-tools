@@ -27,14 +27,18 @@
 					</div>
 					<div id="middle_column">
 						{% if user %}
-						<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
+							<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
 						{% else %}
-						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
+							<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
 						{% endif %}
 		  				<div class="date_break">{{ raid.name }}</div>
 						<div class="post">
 							<div class="post_body">
-								{% autoescape off %}{{ raid.html }}{% endautoescape %}
+								{% if raid %}
+									{% autoescape off %}{{ raid.html }}{% endautoescape %}
+								{% else %}
+									<p>No raid found for the given identifier. It may have been deleted by the owner.</p>
+								{% endif %}
 							</div>
 						</div>
 					</div>

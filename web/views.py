@@ -50,7 +50,10 @@ def raid_detail(request, raid_id):
 #	if not request.user.is_authenticated():
 #		return HttpResponseRedirect('/login?next=%s' % request.path)
 	user = request.user
-	raid = Event.objects.get(pk=raid_id) #, user=user)
+	try:
+		raid = Event.objects.get(pk=raid_id) #, user=user)
+	except:
+		raid = None
 	return render_to_response('raid_detail.html', { 'user': user.username, 'raid': raid })
 
 def upload(request):
