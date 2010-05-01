@@ -7,6 +7,14 @@ body
 	color: #d8f2ff;
 	background: url(/images/bg2.jpg) 50% 0 #114576 repeat-x;
 	background-attachment: fixed;
+}
+h3
+{
+	border-bottom: 1px solid #013996;
+}
+td
+{
+	padding: 2px 8px;
 } 
 #ev_bg
 {
@@ -38,7 +46,7 @@ body
 {
 	clear: both;
 	background: url(/images/border_b_2.gif) repeat-x;
-	padding: 20px 10px;
+	padding: 10px 10px;
 }	
 #left_column
 {
@@ -101,7 +109,7 @@ body
 {
 	background: url(/images/metal_dark.jpg);
 	border: 1px solid #0a0f51;
-	margin-bottom: 35px;
+	margin-bottom: 24px;
 	line-height: 18px;
 } 
 .post h1
@@ -190,5 +198,36 @@ li
 a
 {
 	color: white;
+}
+.src
+{
+	font-weight: bold;
+}
+.dst
+{
+	font-style: italic;
+	padding-left: 32px;
+}
+.effect
+{
+	padding-left: 64px;
+}
+.ads
+{
+	padding: 20px;
+	text-align: center;
+}
+.damage
+{
+	color: red;
+}
+.healing
+{
+	color: green;
+}
+.chart
+{
+	text-align: center;
+	padding: 20px;
 }
 

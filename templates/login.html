@@ -20,11 +20,11 @@
 				<div id="middle" class="horizontal">
 					<div id="left_column">
 						<div id="navigation">
-							<a href="./">Home</a>
-							<a href="./raids">Raid Listing</a>
-							<a href="./upload">Upload Combat Log</a>
-							<a href="./register">Register</a>
-							<a href="./">Undefined</a>
+							<a href="/">Home</a>
+							<a href="/raids">Raid Listing</a>
+							<a href="/upload">Upload Combat Log</a>
+							<a href="/register">Register</a>
+							<a href="/contact">Contact</a>
 						</div>
 					</div>
 					<div id="middle_column">
@@ -35,7 +35,7 @@
 								<p class="warning">{{ message }}</p>
 								{% endif %}
 								<form method="post" enctype="multipart/form-data" action="./login">
-									<input type="hidden" id="next" name="next" value="{{ next }}" />
+									<div><input type="hidden" id="next" name="next" value="{{ next }}" /></div>
 									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="64" maxlength="80" /></p>
 									<p><label for="password">Password:</label> <input type="password" id="password" name="password" size="64" maxlength="80" /></p>
 									<p><input class="awesome blue" type="submit" id="submit" value="Log In" /></p>
@@ -44,9 +44,21 @@
 							</div>
 						</div>
 					</div>
+				</div>
 				<div id="footer">
-					<div id="subnav"><!--<a href="#">SubNav1</a> | <a href="#">SubNav2</a> | <a href="#">SubNav3</a> | <a href="#">SubNav4</a> | <a href="#">SubNav5</a> | <a href="#">SubNav6</a>--></div>
-					<span class="copyright">World of Warcraft&reg; and Blizzard Entertainment&reg; are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. <br> These terms and all related materials, logos, and images are copyright &copy; Blizzard Entertainment. This site is in no way associated with or endorsed by Blizzard Entertainment&reg;.</span>
+					<span class="copyright">World of Warcraft&reg; and Blizzard Entertainment&reg; are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries.<br />These terms and all related materials, logos, and images are copyright &copy; Blizzard Entertainment. This site is in no way associated with or endorsed by Blizzard Entertainment&reg;.</span>
+					<div class="ads">
+						<script type="text/javascript"><!--
+							google_ad_client = "pub-7854064779422358";
+							/* WoW Combat Log Parser */
+							google_ad_slot = "2333310625";
+							google_ad_width = 468;
+							google_ad_height = 60;
+							//-->
+						</script>
+						<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+						</script>
+					</div>
 				</div>
 			</div>
 		</div>

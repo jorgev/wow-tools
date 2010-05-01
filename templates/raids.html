@@ -18,11 +18,11 @@
 				<div id="middle" class="horizontal">
 					<div id="left_column">
 						<div id="navigation">
-							<a href="./">Home</a>
-							<a href="./raids">Raid Listing</a>
-							<a href="./upload">Upload Combat Log</a>
-							<a href="./register">Register</a>
-							<a href="./">Undefined</a>
+							<a href="/">Home</a>
+							<a href="/raids">Raid Listing</a>
+							<a href="/upload">Upload Combat Log</a>
+							<a href="/register">Register</a>
+							<a href="/contact">Contact</a>
 						</div>
 					</div>
 					<div id="middle_column">
@@ -40,16 +40,28 @@
 									</thead>
 									<tbody>
 										{% for raid in raids %}
-										<tr><td><a href="/raids/{{ raid.id }}/">{{ raid.name }}</a></td><td>{{ raid.created }}</td></tr>
+										<tr><td><a href="/raids/{{ raid.id }}/">{{ raid.name }}</a> <button class="awesome blue tiny">Delete</button></td><td>{{ raid.created|date:'D M d' }}</td></tr>
 										{% endfor %}
 									</tbody>
 								</table>
 							</div>
 						</div>
 					</div>
+				</div>
 				<div id="footer">
-					<div id="subnav"><!--<a href="#">SubNav1</a> | <a href="#">SubNav2</a> | <a href="#">SubNav3</a> | <a href="#">SubNav4</a> | <a href="#">SubNav5</a> | <a href="#">SubNav6</a>--></div>
-					<span class="copyright">World of Warcraft&reg; and Blizzard Entertainment&reg; are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. <br> These terms and all related materials, logos, and images are copyright &copy; Blizzard Entertainment. This site is in no way associated with or endorsed by Blizzard Entertainment&reg;.</span>
+					<span class="copyright">World of Warcraft&reg; and Blizzard Entertainment&reg; are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries.<br />These terms and all related materials, logos, and images are copyright &copy; Blizzard Entertainment. This site is in no way associated with or endorsed by Blizzard Entertainment&reg;.</span>
+					<div class="ads">
+						<script type="text/javascript"><!--
+							google_ad_client = "pub-7854064779422358";
+							/* WoW Combat Log Parser */
+							google_ad_slot = "2333310625";
+							google_ad_width = 468;
+							google_ad_height = 60;
+							//-->
+						</script>
+						<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+						</script>
+					</div>
 				</div>
 			</div>
 		</div>

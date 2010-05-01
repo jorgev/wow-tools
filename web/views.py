@@ -1,10 +1,11 @@
 # Create your views here.
 from django.shortcuts import render_to_response
-from web.models import Event, UploadForm, LoginForm, RegisterForm
+from web.models import Event, UploadForm, LoginForm, RegisterForm, ContactForm
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 import parser
 
 def index(request):
@@ -24,6 +25,20 @@ def register(request):
 	else:
 		return render_to_response('register.html', {})
 
+def contact(request):
+	if not request.user.is_authenticated():
+		return HttpResponseRedirect('/login?next=%s' % request.path)
+	user = request.user
+	if request.method == 'POST':
+		form = ContactForm(request.POST)
+		if form.is_valid():
+			send_mail(request.POST['subject'], request.POST['body'], user.email, ['jorge@localhost'])
+			return HttpResponseRedirect('./')
+		else:
+			return render_to_response('contact.html', { 'message': 'There was an error processing the form, please try again' })
+	else:
+		return render_to_response('contact.html', { 'user': user.username })
+
 def raids(request):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
@@ -32,10 +47,13 @@ def raids(request):
 	return render_to_response('raids.html', { 'user': user.username, 'raids': raids })
 
 def raid_detail(request, raid_id):
-	if not request.user.is_authenticated():
-		return HttpResponseRedirect('/login?next=%s' % request.path)
+#	if not request.user.is_authenticated():
+#		return HttpResponseRedirect('/login?next=%s' % request.path)
 	user = request.user
-	raid = Event.objects.get(pk=raid_id, user=user)
+	try:
+		raid = Event.objects.get(pk=raid_id) #, user=user)
+	except:
+		raid = None
 	return render_to_response('raid_detail.html', { 'user': user.username, 'raid': raid })
 
 def upload(request):
@@ -44,8 +62,8 @@ def upload(request):
 	if request.method == 'POST':
 		form = UploadForm(request.POST, request.FILES)
 		if form.is_valid():
-			parser.parse_data(request.user, request.POST['name'], request.FILES['file'])
-			return HttpResponseRedirect('./raids')
+			raid_id = parser.parse_data(request.user, request.POST['name'], request.POST['ignore_pets'], request.POST['ignore_guardians'], request.FILES['file'])
+			return HttpResponseRedirect('./raids/%d' % raid_id)
 		else:
 			return render_to_response('upload.html', { 'message': 'There was an error processing the form, please try again' })
 	else:
@@ -74,8 +92,10 @@ def login(request):
 		else:
 			return render_to_response('login.html', { 'message': 'There was an error processing the form, please try again' })
 	else:
-		next = request.GET['next']
-		return render_to_response('login.html', { 'next': next })
+		if request.GET.has_key('next'):
+			return render_to_response('login.html', { 'next': request.GET['next'] })
+		else:
+			return render_to_response('login.html', {})
 
 def logout(request):
 	auth.logout(request)

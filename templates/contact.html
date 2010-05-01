@@ -9,7 +9,7 @@
 		<link href="css/style1.css" rel="stylesheet" type="text/css" />
 		<link href="css/awesome-buttons.css" rel="stylesheet" type="text/css" />
 		<script type="text/javascript" src="js/jquery.min.js"></script>
-		<script type="text/javascript" src="js/register.js"></script>
+		<script type="text/javascript" src="js/contact.js"></script>
 	</head>
 	<body>
 		<div id="ev_bg">
@@ -28,19 +28,22 @@
 						</div>
 					</div>
 					<div id="middle_column">
-		  				<div class="date_break">Register</div>
+						{% if user %}
+						<p>Logged in as {{ user }}, click <a href="/logout">here</a> to log out.</p>
+						{% else %}
+						<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
+						{% endif %}
+		  				<div class="date_break">Contact Us</div>
 						<div class="post">
 							<div class="post_body">
-								<p>Please provide the information below to create your account. Email addresses are only used for password recovery. All fields are required.</p>
+								<p>See something you like? Something you hate? Found a bug? Use the form below to send an email to the site admin. All fields are required.</p>
 								{% if message %}
 								<p class="warning">{{ message }}</p>
 								{% endif %}
-								<form method="post" enctype="multipart/form-data" action="./register">
-									<p><label for="username">Username:</label> <input type="text" id="username" name="username" size="40" maxlength="80" /></p>
-									<p><label for="email">Email address:</label> <input type="text" id="email" name="email" size="64" maxlength="80" /></p>
-									<p><label for="password">Password:</label> <input type="password" id="password" name="password" size="40" maxlength="80" /></p>
-									<p><label for="password2">Re-Enter Password:</label> <input type="password" id="password2" name="password2" size="40" maxlength="80" /></p>
-									<p><input class="awesome blue" type="submit" id="submit" value="Register" /></p>
+								<form method="post" enctype="multipart/form-data" action="./contact">
+									<p><label for="subject">Subject:</label> <input type="text" id="subject" name="subject" size="80" maxlength="80" /></p>
+									<p><textarea id="body" name="body" cols="80" rows="12"></textarea></p>
+									<p><input class="awesome blue" type="submit" id="submit" value="Send" /></p>
 								</form>
 							</div>
 						</div>

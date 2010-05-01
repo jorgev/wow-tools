@@ -118,6 +118,8 @@
       .awesome.green {
         background-color: #3ACC00 !important;
       }
+      .awesome.tiny            { padding: 2px 5px 3px !important; font-size: 9px !important; }
+      .awesome.tiny:active   { padding: 3px 5px 2px !important; }
       .awesome.small            { padding: 4px 7px 5px !important; font-size: 10px !important; }
       .awesome.small:active   { padding: 5px 7px 4px !important; }
       .awesome.large          { padding: 8px 14px 9px !important; font-size: 14px !important; }

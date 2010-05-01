@@ -1,4 +1,4 @@
-// upload.js
+// register.js
 
 $(document).ready(function() {
 	$('form').submit(function(event) {

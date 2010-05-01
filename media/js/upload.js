@@ -5,9 +5,15 @@ $(document).ready(function() {
 		$('#submit-message').remove();
 		var fileName = $('#file').val();
 		var name = $('#name').val();
-		if (fileName.length == 0 || name.length == 0) {
+		if (name.length == 0) {
 			$('<p></p>').attr({'id': 'submit-message', 'class': 'warning'})
-			.append('All fields are required')
+			.append('Event name is missing')
+			.insertBefore('#submit');
+			return false;
+		}
+		else if (fileName.length == 0) {
+			$('<p></p>').attr({'id': 'submit-message', 'class': 'warning'})
+			.append('File name is missing')
 			.insertBefore('#submit');
 			return false;
 		}
@@ -17,3 +23,4 @@ $(document).ready(function() {
 		.insertAfter('#submit');
 	});
 });
+

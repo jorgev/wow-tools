@@ -7,27 +7,42 @@ Created by Jorge Velázquez on 2010-04-24.
 """
 
 import datetime
+from operator import itemgetter
 from web.models import Event
 
 damage_fields = ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE', 'SWING_DAMAGE', 'RANGE_DAMAGE']
 healing_fields = ['SPELL_HEAL', 'SPELL_PERIODIC_HEAL']
-other_fields = ['SPELL_MISSED']
-tracked_fields = damage_fields + healing_fields + other_fields
+miss_fields = ['SPELL_MISSED', 'SWING_MISSED', 'RANGE_MISSED']
+tracked_fields = damage_fields + healing_fields + miss_fields
+
+PET_MASK = 0x00001000
+GUARDIAN_MASK = 0x00002000
 
 class Effect:
 	def __init__(self, name):
 		self.name = name
 		self.healing = 0
+		self.periodic_healing = 0
+		self.overhealing = 0
 		self.damage = 0
+		self.periodic_damage = 0
 		self.hits = 0
+		self.crits = 0
 		self.ticks = 0
-		self.resists = 0
-		self.misses = 0
+		self.periodic_crits = 0
+		self.resisted = 0
+		self.resisted_amount = 0
+		self.missed = 0
 		self.crits = 0
 		self.periodic_crits = 0
 		self.blocked = 0
+		self.blocked_amount = 0
+		self.dodged = 0
 		self.parried = 0
+		self.immune = 0
 		self.absorbed = 0
+		self.absorbed_amount = 0
+		self.reflected = 0
 
 class Destination:
 	def __init__(self, id, name):
@@ -45,9 +60,11 @@ class Source:
 		self.name = name
 		self.damage = 0
 		self.healing = 0
+		self.start_time = None
+		self.end_time = None
 		self.destinations = {}
 
-def parse_data(user, event_name, file):
+def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	# hashes for calculating stats
 	sources = {}
 
@@ -79,6 +96,14 @@ def parse_data(user, event_name, file):
 		if srcguid == 0 or dstguid == 0:
 			continue
 
+		# get flags and check for user-specified filters
+		srcflags = int(combat_fields[3], 16)
+		dstflags = int(combat_fields[6], 16)
+		if ignore_pets and ((srcflags & PET_MASK) or (dstflags & PET_MASK)):
+			continue
+		if ignore_guardians and ((srcflags & GUARDIAN_MASK) or (dstflags & GUARDIAN_MASK)):
+			continue
+
 		# strip surrounding double-quots from source and destination names
 		srcname = combat_fields[2][1:-1]
 		dstname = combat_fields[5][1:-1]
@@ -87,14 +112,31 @@ def parse_data(user, event_name, file):
 		# get the timestamp (NOTE: year is not supplied in the combat log, this will cause problems if log file crosses a year boundary)
 		timestamp = datetime.datetime.strptime(date_time, '%m/%d %H:%M:%S.%f')
 
-		# depending on how many fields we have, damage/healing amount could be in two places
+		# depending on how many fields we have, combat data could be in different places
 		num_fields = len(combat_fields)
-		if num_fields == 16:
+		crit = False
+		overheal = 0
+		if num_fields == 16: # this is a swing damage entry
 			amount = int(combat_fields[7])
-		elif num_fields == 19:
+			if combat_fields[13] == '1':
+				crit = True
+		elif num_fields == 19: # this is spell damage
 			amount = int(combat_fields[10])
+			if combat_fields[16] == '1':
+				crit = True
+		elif num_fields == 14: # this is spell healing
+			amount = int(combat_fields[10])
+			overheal = int(combat_fields[11])
+			if combat_fields[13] == '1':
+				crit = True
 		else:
 			amount = 0 # other type of field
+
+		# special case
+		if effect_type == 'SWING_DAMAGE' or effect_type == 'SWING_MISSED':
+			effect_name = 'Swing'
+		else:
+			effect_name = combat_fields[8][1:-1]
 
 		# add or get source
 		if srcguid in sources:
@@ -102,6 +144,17 @@ def parse_data(user, event_name, file):
 		else:
 			source = Source(srcguid, srcname)
 			sources[srcguid] = source
+
+		# update stats for the source
+		if effect_type in damage_fields:
+			source.damage += amount
+		elif effect_type in healing_fields:
+			source.healing += amount
+
+		# timestamps, for dps/hps calculation
+		if not source.start_time:
+			source.start_time = timestamp
+		source.end_time = timestamp
 
 		# add or get destination
 		if dstguid in source.destinations:
@@ -116,16 +169,12 @@ def parse_data(user, event_name, file):
 		elif effect_type in healing_fields:
 			destination.healing += amount
 
-		# destination gets the timestamps, for dps/hps calculation
+		# timestamps, for dps/hps calculation
 		if not destination.start_time:
 			destination.start_time = timestamp
 		destination.end_time = timestamp
 
 		# add or get effect
-		if effect_type == 'SWING_DAMAGE':
-			effect_name = "Swing"
-		else:
-			effect_name = combat_fields[8][1:-1]
 		if effect_name in destination.effects:
 			effect = destination.effects[effect_name]
 		else:
@@ -133,29 +182,199 @@ def parse_data(user, event_name, file):
 			destination.effects[effect_name] = effect
 
 		# update effect stats
-		if effect_type == 'SPELL_MISSED':
-			effect.misses += 1
+		if effect_type in miss_fields:
+
+			# if this is a miss, there are various types of misses and, depending
+			# on the miss type, the reason and amount can be in two places
+			miss_amount = 0
+			if effect_type == 'SWING_MISSED':
+				miss_reason = combat_fields[7]
+				if num_fields > 8:
+					miss_amount = int(combat_fields[8])
+			else:
+				miss_reason = combat_fields[10]
+				if num_fields > 11:
+					miss_amount = int(combat_fields[11])
+
+			# now that we know the miss type and amount, add it to the effect stats
+			if miss_reason == 'ABSORB':
+				effect.absorbed += 1
+				effect.absorbed_amount += miss_amount
+			elif miss_reason == 'RESIST':
+				effect.resisted += 1
+				effect.resisted_amount += miss_amount
+			elif miss_reason == 'BLOCK':
+				effect.blocked += 1
+				effect.blocked_amount += miss_amount
+			elif miss_reason == 'DODGE':
+				effect.dodged += 1
+			elif miss_reason == 'PARRY':
+				effect.parried += 1
+			elif miss_reason == 'IMMUNE':
+				effect.immune += 1
+			elif miss_reason == 'MISS':
+				effect.missed += 1
+
+		# or maybe we're dealing with some type of damage field
 		elif effect_type in damage_fields:
-			effect.damage += amount
 			if effect_type == 'SPELL_PERIODIC_DAMAGE':
+				effect.periodic_damage += amount
 				effect.ticks += 1
+				if crit:
+					effect.periodic_crits += 1
 			else:
+				effect.damage += amount
 				effect.hits += 1
+				if crit:
+					effect.crits += 1
+
+		# or could be a healing field
 		elif effect_type in healing_fields:
-			effect.healing += amount
 			if effect_type == 'SPELL_PERIODIC_HEAL':
+				effect.periodic_healing += amount
 				effect.ticks += 1
+				if crit:
+					effect.periodic_crits += 1
 			else:
+				effect.healing += amount
 				effect.hits += 1
+				if crit:
+					effect.crits += 1
+			effect.overhealing += overheal
 					
 	# we're done parsing, generate some html and save it to the database
 	html = ''
+
+	# damage chart...everyone loves charts
+	html += '<h3>Charts</h3>\n'
+	chart_data = {}
+	raid_total = 0
+	for key in sources.keys():
+		# only charting player damage
+		if (key & 0x0070000000000000) != 0:
+			continue
+
+		# create a hash that is keyed by player name, value is damage
+		source = sources[key]
+		if source.damage:
+			chart_data[source.name] = source.damage
+			raid_total += source.damage
+	items = chart_data.items()
+	items.sort(key=itemgetter(1), reverse=True)
+	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chf=bg,s,00000000&amp;chtt=Overall+Damage&amp;chts=FF0000&amp;chs=600x400&amp;chd=t:'
+	chd = []
+	chl = []
+	for item in items:
+		percentage = '%0.1f' % (item[1] * 100.0 / raid_total)
+		chl.append('%s (%s%%)' % (item[0], percentage))
+		chd.append(percentage)
+	chart_url += ','.join(chd)
+	chart_url += '&amp;chl='
+	chart_url += '|'.join(chl)
+	html += '<div class="chart"><img width="600" height="400" alt="Damage Chart" src="%s"/></div>\n' % chart_url
+
+	# healing chart
+	chart_data = {}
+	raid_total = 0
+	for key in sources.keys():
+		# only charting player damage
+		if (key & 0x0070000000000000) != 0:
+			continue
+
+		# create a hash that is keyed by player name, value is damage
+		source = sources[key]
+		if source.healing:
+			chart_data[source.name] = source.healing
+			raid_total += source.healing
+	items = chart_data.items()
+	items.sort(key=itemgetter(1), reverse=True)
+	chart_url = 'http://chart.apis.google.com/chart?cht=p&amp;chf=bg,s,00000000&amp;chtt=Overall+Healing&amp;chts=00FF00&amp;chs=600x400&amp;chd=t:'
+	chd = []
+	chl = []
+	for item in items:
+		percentage = '%0.1f' % (item[1] * 100.0 / raid_total)
+		chl.append('%s (%s%%)' % (item[0], percentage))
+		chd.append(percentage)
+	chart_url += ','.join(chd)
+	chart_url += '&amp;chl='
+	chart_url += '|'.join(chl)
+	html += '<div class="chart"><img width="600" height="400" alt="Healing Chart" src="%s"/></div>\n' % chart_url
+
+	# now dump the stats out in text format
+	html += '<h3>Combat Details</h3>\n'
 	for source in sources.values():
-		html += '<div>%s<div>\n' % source.name
+		html += '<div class="src">%s' % source.name
+		timediff = source.end_time - source.start_time
+		total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
+		if source.damage:
+			dps = float(source.damage) / total_seconds
+			html += ', %d damage (%0.1f DPS)' % (source.damage, dps)
+		if source.healing:
+			hps = float(source.healing) / total_seconds
+			html += ', %d healing (%0.1f HPS)' % (source.healing, hps)
+		html += '</div>\n'
+		for destination in source.destinations.values():
+			html += '<div class="dst">%s' % destination.name
+			timediff = destination.end_time - destination.start_time
+			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
+			if destination.damage:
+				dps = float(destination.damage) / total_seconds
+				html += ', %d damage (%0.1f DPS)' % (destination.damage, dps)
+			if destination.healing:
+				hps = float(destination.healing) / total_seconds
+				html += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
+			html += '</div>\n'
+			for effect in destination.effects.keys():
+				val = destination.effects[effect]
+				if val.damage or val.periodic_damage:
+					html += '<div class="effect damage">%s' % effect
+				elif val.healing or val.periodic_healing:
+					html += '<div class="effect healing">%s' % effect
+				else:
+					html += '<div class="effect">%s' % effect
+				if val.damage:
+					html += ', %d damage (%d hit(s)' % (val.damage, val.hits)
+					if val.crits:
+						html += ', %d crit(s)' % val.crits
+					html += ' - %0.1f avg)' %  (float(val.damage) / val.hits)
+				if val.periodic_damage:
+					html += ', %d periodic damage (%d ticks' % (val.periodic_damage, val.ticks)
+					if val.periodic_crits:
+						html += ', %d crit(s)' % val.periodic_crits
+					html += ' - %0.1f avg)' % (float(val.periodic_damage) / val.ticks)
+				if val.healing:
+					html += ', %d healing (%d hits(s)' % (val.healing, val.hits)
+					if val.crits:
+						html += ', %d crit(s)' % val.crits
+					html += ' - %0.1f avg)' % (float(val.healing) / val.hits)
+				if val.periodic_healing:
+					html += ', %d periodic healing (%d ticks' % (val.periodic_healing, val.ticks)
+					if val.periodic_crits:
+						html += ', %d crit(s)' % val.periodic_crits
+					html += ' - %0.1f avg)' % (float(val.periodic_healing) / val.ticks)
+				if val.overhealing:
+					html += ', %d overhealing (%0.1f %%)' % (val.overhealing, val.overhealing * 100.0 / (val.healing + val.periodic_healing))
+				if val.absorbed:
+					html += ', %d absorbed (%d amount)' % (val.absorbed, val.absorbed_amount)
+				if val.blocked:
+					html += ', %d blocked (%d amount)' % (val.blocked, val.blocked_amount)
+				if val.resisted:
+					html += ', %d resisted' % val.resisted
+				if val.missed:
+					html += ', %d missed' % val.missed
+				if val.dodged:
+					html += ', %d dodged' % val.dodged
+				if val.parried:
+					html += ', %d parried' % val.parried
+				if val.immune:
+					html += ', %d immune' % val.immune
+				if val.reflected:
+					html += ', %d reflected' % val.reflected
+				html += '</div>\n'
 
 	# create the raid object
 	raid = Event(user=user, name=event_name, html=html)
 	raid.save()
 
-	return html
+	return raid.id
 
