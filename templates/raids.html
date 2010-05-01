@@ -6,8 +6,10 @@
 		<meta name="description" content="World of Warcraft Combat Log Parser" />
 		<title>World of Warcraft Combat Log Parser</title>
 		<link rel="icon" type="image/png" href="/images/icon.png" />
-		<link href="css/style1.css" rel="stylesheet" type="text/css" />
-		<link href="css/awesome-buttons.css" rel="stylesheet" type="text/css" />
+		<link href="/css/style1.css" rel="stylesheet" type="text/css" />
+		<link href="/css/awesome-buttons.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/js/raids.js"></script>
 	</head>
 	<body>
 		<div id="ev_bg">
@@ -40,7 +42,7 @@
 									</thead>
 									<tbody>
 										{% for raid in raids %}
-										<tr><td><a href="/raids/{{ raid.id }}/">{{ raid.name }}</a> <button class="awesome blue tiny">Delete</button></td><td>{{ raid.created|date:'D M d' }}</td></tr>
+										<tr><td class="name"><a href="/raids/{{ raid.id }}/">{{ raid.name }}</a> <button class="delete awesome blue tiny">Delete</button></td><td>{{ raid.created|date:'D M d' }}</td></tr>
 										{% endfor %}
 									</tbody>
 								</table>
