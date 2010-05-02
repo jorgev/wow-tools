@@ -318,7 +318,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			html += ', %d healing (%0.1f HPS)' % (source.healing, hps)
 		html += '", \n'
 		for destination in source.destinations.values():
-			html += '["%s' % destination.name
+			html += '\t["%s' % destination.name
 			timediff = destination.end_time - destination.start_time
 			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 			if destination.damage:
@@ -330,7 +330,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			html += '", \n'
 			for effect in destination.effects.keys():
 				val = destination.effects[effect]
-				html += '["%s' % effect
+				html += '\t\t["%s' % effect
 				if val.damage:
 					html += ', %d damage (%d hit(s)' % (val.damage, val.hits)
 					if val.crits:
@@ -371,7 +371,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					html += ', %d reflected' % val.reflected
 				html += '"]'
 			html += ']'
-		html += ']\n'
+		html += '],\n'
 	html += 'tree = new goog.ui.tree.TreeControl("combat_data");\n'
 	html += 'createTreeFromCombatData(tree, combatData);\n'
 	html += 'tree.render($("combat"));\n'
