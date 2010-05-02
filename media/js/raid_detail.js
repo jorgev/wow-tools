@@ -14,7 +14,7 @@ function createTreeFromCombatData(node, data) {
 			var childNode = node.getTree().createNode();
 
 			node.add(childNode);
-			createTreeFromTestData(childNode, child);
+			createTreeFromCombatData(childNode, child);
 
 			if (i == childNotCollapsible && child.length > 1) {
 				childNode.setIsUserCollapsible(false);
