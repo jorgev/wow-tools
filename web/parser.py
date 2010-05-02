@@ -306,8 +306,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	html += '</div>\n'
 	html += '<script type="text/javascript">\n'
 	html += 'var combatData =\n'
-	array = [[[]]]
-	source_index = 0
+	sources_array = []
 	for source in sources.values():
 		text = '%s' % source.name
 		timediff = source.end_time - source.start_time
@@ -318,8 +317,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		if source.healing:
 			hps = float(source.healing) / total_seconds
 			text += ', %d healing (%0.1f HPS)' % (source.healing, hps)
-		array.insert(source_index, text)
-		destination_index = 0
+		sources_array.append(text)
+		destinations_array = []
 		for destination in source.destinations.values():
 			text = '%s' % destination.name
 			timediff = destination.end_time - destination.start_time
@@ -330,8 +329,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			if destination.healing:
 				hps = float(destination.healing) / total_seconds
 				text += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
-			array[source_index].insert(destination_index, text)
-			effect_index = 0
+			destinations_array.append(text)
+			effects_array = []
 			for effect in destination.effects.keys():
 				val = destination.effects[effect]
 				text = '%s' % effect
@@ -373,11 +372,10 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					text += ', %d immune' % val.immune
 				if val.reflected:
 					text += ', %d reflected' % val.reflected
-				array[source_index][destination_index].insert(effect_index, text)
-				effect_index += 1
-			destination_index += 1
-		source_index += 1
-	html += array
+				effects_array.append(text)
+			destinations_array.append(effects_array)
+		sources_array.append(destinations_array)
+	html += sources_array
 	html += 'tree = new goog.ui.tree.TreeControl("combat_data");\n'
 	html += 'createTreeFromCombatData(tree, combatData);\n'
 	html += 'tree.render($("combat"));\n'
