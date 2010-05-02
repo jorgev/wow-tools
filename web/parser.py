@@ -302,8 +302,12 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 
 	# now dump the stats out in text format
 	html += '<h3>Combat Details</h3>\n'
+	html += '<div id="combat">\n'
+	html += '</div>\n'
+	html += '<script type="text/javascript">\n'
+	html += 'var combatData =\n'
 	for source in sources.values():
-		html += '<div class="src">%s' % source.name
+		html += '["%s' % source.name
 		timediff = source.end_time - source.start_time
 		total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 		if source.damage:
@@ -312,9 +316,9 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 		if source.healing:
 			hps = float(source.healing) / total_seconds
 			html += ', %d healing (%0.1f HPS)' % (source.healing, hps)
-		html += '</div>\n'
+		html += '", \n'
 		for destination in source.destinations.values():
-			html += '<div class="dst">%s' % destination.name
+			html += '["%s' % destination.name
 			timediff = destination.end_time - destination.start_time
 			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 			if destination.damage:
@@ -323,15 +327,10 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			if destination.healing:
 				hps = float(destination.healing) / total_seconds
 				html += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
-			html += '</div>\n'
+			html += '", \n'
 			for effect in destination.effects.keys():
 				val = destination.effects[effect]
-				if val.damage or val.periodic_damage:
-					html += '<div class="effect damage">%s' % effect
-				elif val.healing or val.periodic_healing:
-					html += '<div class="effect healing">%s' % effect
-				else:
-					html += '<div class="effect">%s' % effect
+				html += '["%s' % effect
 				if val.damage:
 					html += ', %d damage (%d hit(s)' % (val.damage, val.hits)
 					if val.crits:
@@ -370,8 +369,14 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					html += ', %d immune' % val.immune
 				if val.reflected:
 					html += ', %d reflected' % val.reflected
-				html += '</div>\n'
-
+				html += '"]'
+			html += ']'
+		html += ']\n'
+	html += 'tree = new goog.ui.tree.TreeControl("combat_data");\n'
+	html += 'createTreeFromCombatData(tree, combatData);\n'
+	html += 'tree.render($("combat"));\n'
+	html += '</script>\n'
+	
 	# create the raid object
 	raid = Event(user=user, name=event_name, html=html)
 	raid.save()
