@@ -369,8 +369,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					html += ', %d immune' % val.immune
 				if val.reflected:
 					html += ', %d reflected' % val.reflected
-				html += '"]'
-			html += ']'
+				html += '"],\n'
+			html += '],\n'
 		html += '],\n'
 	html += 'tree = new goog.ui.tree.TreeControl("combat_data");\n'
 	html += 'createTreeFromCombatData(tree, combatData);\n'
