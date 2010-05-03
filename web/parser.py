@@ -251,8 +251,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	chart_data = {}
 	raid_total = 0
 	for key in sources.keys():
-		# only charting player damage
-		if (key & 0x0070000000000000) != 0:
+		# only charting player and pet damage
+		if (key & 0x0070000000000000) != 0 and (key & 0x0070000000000000) != 0x0040000000000000:
 			continue
 
 		# create a hash that is keyed by player name, value is damage

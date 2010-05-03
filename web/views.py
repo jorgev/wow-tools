@@ -79,11 +79,12 @@ def upload(request):
 	if not request.user.is_authenticated():
 		return HttpResponseRedirect('/login?next=%s' % request.path)
 	if request.method == 'POST':
-		form = UploadForm(request.POST, request.FILES)
-		if form.is_valid():
-			raid_id = parser.parse_data(request.user, request.POST['name'], request.POST['ignore_pets'], request.POST['ignore_guardians'], request.FILES['file'])
+		try:
+			ignore_pets = 'ignore_pets' in request.POST
+			ignore_guardians = 'ignore_guardians' in request.POST
+			raid_id = parser.parse_data(request.user, request.POST['name'], ignore_pets, ignore_guardians, request.FILES['file'])
 			return HttpResponseRedirect('./raids/%d' % raid_id)
-		else:
+		except:
 			return render_to_response('upload.html', { 'message': 'There was an error processing the form, please try again' })
 	else:
 		username = request.user.username
