@@ -372,8 +372,11 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				if val.reflected:
 					effect_text += ', %d reflected' % val.reflected
 				effects_array.append([effect_text])
+			effects_array.sort()
 			destinations_array.append([destination_text, effects_array])
+		destinations_array.sort()
 		sources_array.append([source_text, destinations_array])
+	sources_array.sort()
 	outer_array = ['Combat Data', sources_array]
 	html += str(outer_array) + ';\n'
 	html += 'var $ = goog.dom.getElement;\n'
@@ -386,7 +389,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	
 	# create the raid object
 	raid = Event(user=user, name=event_name, html=html)
-	raid.public_hash = uuid.uuid1().hex # create a publicly-accessible URL from a unique identifier
+	raid.public_hash = uuid.uuid4().hex # create a publicly-accessible URL from a unique identifier
 	raid.save()
 
 	return raid.id
