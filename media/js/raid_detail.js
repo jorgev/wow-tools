@@ -3,8 +3,6 @@
 goog.require('goog.dom');
 goog.require('goog.ui.tree.TreeControl');
 
-var $ = goog.dom.getElement;
-
 function createTreeFromCombatData(node, data) {
 	node.setHtml(data[0]);
 	if (data.length > 1) {
