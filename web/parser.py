@@ -370,7 +370,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 					effect_text += ', %d immune' % val.immune
 				if val.reflected:
 					effect_text += ', %d reflected' % val.reflected
-				effects_array.append(effect_text)
+				effects_array.append([effect_text])
 			destinations_array.append([destination_text, effects_array])
 		sources_array.append([source_text, destinations_array])
 	outer_array = ['Combat Data', sources_array]
