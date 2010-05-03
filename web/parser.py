@@ -7,6 +7,7 @@ Created by Jorge Velázquez on 2010-04-24.
 """
 
 import datetime
+import uuid
 from operator import itemgetter
 from web.models import Event
 
@@ -385,6 +386,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	
 	# create the raid object
 	raid = Event(user=user, name=event_name, html=html)
+	raid.public_hash = uuid.uuid1().hex # create a publicly-accessible URL from a unique identifier
 	raid.save()
 
 	return raid.id

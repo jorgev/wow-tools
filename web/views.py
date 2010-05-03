@@ -47,16 +47,18 @@ def raids(request):
 	return render_to_response('raids.html', { 'user': user.username, 'raids': raids })
 
 def raid_detail(request, raid_id):
-	if not request.user.is_authenticated():
-		return HttpResponse(status=401)
-	user = request.user
 	if request.method == 'GET':
+		user = request.user
 		try:
-			raid = Event.objects.get(pk=raid_id, user=user)
+			raid = Event.objects.get(pk=raid_id) #, user=user)
 		except:
 			raid = None
 		return render_to_response('raid_detail.html', { 'user': user.username, 'raid': raid })
 	elif request.method == 'DELETE':
+		# must be authenticated to do a delete
+		if not request.user.is_authenticated():
+			return HttpResponse(status=401)
+		user = request.user
 		try:
 			raid = Event.objects.get(pk=raid_id, user=user)
 			raid.delete()
@@ -65,6 +67,13 @@ def raid_detail(request, raid_id):
 		except:
 			return HttpResponse(status=401)
 		return HttpResponse()
+
+def public_raid_detail(request, public_hash):
+	try:
+		raid = Event.objects.get(public_hash=public_hash)
+	except Event.DoesNotExist:
+		return HttpResponse(status=404)
+	return render_to_response('raid_detail.html', { 'raid': raid })
 
 def upload(request):
 	if not request.user.is_authenticated():

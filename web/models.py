@@ -5,6 +5,7 @@ from django import forms
 # Create your models here.
 class Event(models.Model):
 	user = models.ForeignKey(User)
+	public_hash = models.CharField(max_length=80)
 	name = models.CharField(max_length=255)
 	html = models.TextField()
 	created = models.DateTimeField(auto_now_add=True)
