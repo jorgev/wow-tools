@@ -36,7 +36,9 @@
 							<p>You are not currently logged in. Click <a href="/login">here</a> to go to the login page</p>
 						{% endif %}
 		  				<div class="date_break">{{ raid.name }}</div>
+						{% if not public %}
 						<p>A public link has been created for this raid and can be found <a href="/raids/public/{{ raid.public_hash }}/">here</a>.</p>
+						{% endif %}
 						<div class="post">
 							<div class="post_body">
 								{% if raid %}

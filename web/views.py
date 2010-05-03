@@ -73,7 +73,7 @@ def public_raid_detail(request, public_hash):
 		raid = Event.objects.get(public_hash=public_hash)
 	except Event.DoesNotExist:
 		return HttpResponse(status=404)
-	return render_to_response('raid_detail.html', { 'raid': raid })
+	return render_to_response('raid_detail.html', { 'raid': raid, 'public': True })
 
 def upload(request):
 	if not request.user.is_authenticated():
