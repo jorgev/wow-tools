@@ -2,8 +2,6 @@
 
 goog.require('goog.ui.tree.TreeControl');
 
-var tree;
-
 function createTreeFromCombatData(node, data) {
 	node.setHtml(data[0]);
 	if (data.length > 1) {

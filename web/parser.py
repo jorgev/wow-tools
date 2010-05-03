@@ -376,7 +376,7 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 			destinations_array.append(effects_array)
 		sources_array.append(destinations_array)
 	html += str(sources_array) + ';\n'
-	html += 'tree = new goog.ui.tree.TreeControl("root");\n'
+	html += 'var tree = new goog.ui.tree.TreeControl("root");\n'
 	html += 'createTreeFromCombatData(tree, combatData);\n'
 	html += 'tree.render($("combat"));\n'
 	html += '</script>\n'
