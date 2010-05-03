@@ -373,8 +373,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				if val.reflected:
 					text += ', %d reflected' % val.reflected
 				effects_array.append(text)
-			destinations_array.append(effects_array)
-		sources_array.append(destinations_array)
+			destinations_array.append([effects_array])
+		sources_array.append([destinations_array])
 	html += str(sources_array) + ';\n'
 	html += 'var $ = goog.dom.getElement;\n'
 	html += 'var tree = new goog.ui.tree.TreeControl("root");\n'
