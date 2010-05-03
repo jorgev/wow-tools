@@ -373,8 +373,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 				effects_array.append([effect_text])
 			destinations_array.append([destination_text, effects_array])
 		sources_array.append([source_text, destinations_array])
-	outer_array = ['Combat Data', sources_array]
-	html += str(outer_array) + ';\n'
+#	outer_array = ['Combat Data', sources_array]
+	html += str(sources_array) + ';\n'
 	html += 'var $ = goog.dom.getElement;\n'
 	html += 'var tree = new goog.ui.tree.TreeControl("root");\n'
 	html += 'createTreeFromCombatData(tree, combatData);\n'
