@@ -378,8 +378,8 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	html += 'var $ = goog.dom.getElement;\n'
 	html += 'var tree = new goog.ui.tree.TreeControl("root");\n'
 	html += 'createTreeFromCombatData(tree, combatData);\n'
-	html += 'tree.setShowRootNode(false);\n'
 	html += 'tree.render($("combat"));\n'
+	html += 'tree.setShowRootNode(false);\n'
 	html += '</script>\n'
 	
 	# create the raid object
