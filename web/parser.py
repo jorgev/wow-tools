@@ -308,76 +308,72 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	html += 'var combatData =\n'
 	sources_array = []
 	for source in sources.values():
-		text = '%s' % source.name
+		source_text = '%s' % source.name
 		timediff = source.end_time - source.start_time
 		total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 		if source.damage:
 			dps = float(source.damage) / total_seconds
-			text += ', %d damage (%0.1f DPS)' % (source.damage, dps)
+			source_text += ', %d damage (%0.1f DPS)' % (source.damage, dps)
 		if source.healing:
 			hps = float(source.healing) / total_seconds
-			text += ', %d healing (%0.1f HPS)' % (source.healing, hps)
-		sources_array.append(text)
+			source_text += ', %d healing (%0.1f HPS)' % (source.healing, hps)
 		destinations_array = []
 		for destination in source.destinations.values():
-			text = '%s' % destination.name
+			destination_text = '%s' % destination.name
 			timediff = destination.end_time - destination.start_time
 			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
 			if destination.damage:
 				dps = float(destination.damage) / total_seconds
-				text += ', %d damage (%0.1f DPS)' % (destination.damage, dps)
+				destination_text += ', %d damage (%0.1f DPS)' % (destination.damage, dps)
 			if destination.healing:
 				hps = float(destination.healing) / total_seconds
-				text += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
-			destinations_array.append(text)
+				destination_text += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
 			effects_array = []
 			for effect in destination.effects.keys():
 				val = destination.effects[effect]
-				text = '%s' % effect
+				effect_text = '%s' % effect
 				if val.damage:
-					text += ', %d damage (%d hit(s)' % (val.damage, val.hits)
+					effect_text += ', %d damage (%d hit(s)' % (val.damage, val.hits)
 					if val.crits:
-						text += ', %d crit(s)' % val.crits
-					text += ' - %0.1f avg)' %  (float(val.damage) / val.hits)
+						effect_text += ', %d crit(s)' % val.crits
+					effect_text += ' - %0.1f avg)' %  (float(val.damage) / val.hits)
 				if val.periodic_damage:
-					text += ', %d periodic damage (%d ticks' % (val.periodic_damage, val.ticks)
+					effect_text += ', %d periodic damage (%d ticks' % (val.periodic_damage, val.ticks)
 					if val.periodic_crits:
-						text += ', %d crit(s)' % val.periodic_crits
-					text += ' - %0.1f avg)' % (float(val.periodic_damage) / val.ticks)
+						effect_text += ', %d crit(s)' % val.periodic_crits
+					effect_text += ' - %0.1f avg)' % (float(val.periodic_damage) / val.ticks)
 				if val.healing:
-					text += ', %d healing (%d hits(s)' % (val.healing, val.hits)
+					effect_text += ', %d healing (%d hits(s)' % (val.healing, val.hits)
 					if val.crits:
-						text += ', %d crit(s)' % val.crits
-					text += ' - %0.1f avg)' % (float(val.healing) / val.hits)
+						effect_text += ', %d crit(s)' % val.crits
+					effect_text += ' - %0.1f avg)' % (float(val.healing) / val.hits)
 				if val.periodic_healing:
-					text += ', %d periodic healing (%d ticks' % (val.periodic_healing, val.ticks)
+					effect_text += ', %d periodic healing (%d ticks' % (val.periodic_healing, val.ticks)
 					if val.periodic_crits:
-						text += ', %d crit(s)' % val.periodic_crits
-					text += ' - %0.1f avg)' % (float(val.periodic_healing) / val.ticks)
+						effect_text += ', %d crit(s)' % val.periodic_crits
+					effect_text += ' - %0.1f avg)' % (float(val.periodic_healing) / val.ticks)
 				if val.overhealing:
-					text += ', %d overhealing (%0.1f %%)' % (val.overhealing, val.overhealing * 100.0 / (val.healing + val.periodic_healing))
+					effect_text += ', %d overhealing (%0.1f %%)' % (val.overhealing, val.overhealing * 100.0 / (val.healing + val.periodic_healing))
 				if val.absorbed:
-					text += ', %d absorbed (%d amount)' % (val.absorbed, val.absorbed_amount)
+					effect_text += ', %d absorbed (%d amount)' % (val.absorbed, val.absorbed_amount)
 				if val.blocked:
-					text += ', %d blocked (%d amount)' % (val.blocked, val.blocked_amount)
+					effect_text += ', %d blocked (%d amount)' % (val.blocked, val.blocked_amount)
 				if val.resisted:
-					text += ', %d resisted' % val.resisted
+					effect_text += ', %d resisted' % val.resisted
 				if val.missed:
-					text += ', %d missed' % val.missed
+					effect_text += ', %d missed' % val.missed
 				if val.dodged:
-					text += ', %d dodged' % val.dodged
+					effect_text += ', %d dodged' % val.dodged
 				if val.parried:
-					text += ', %d parried' % val.parried
+					effect_text += ', %d parried' % val.parried
 				if val.immune:
-					text += ', %d immune' % val.immune
+					effect_text += ', %d immune' % val.immune
 				if val.reflected:
-					text += ', %d reflected' % val.reflected
-				effects_array.append(text)
-			destinations_array.append([effects_array])
-		sources_array.append([destinations_array])
-	outer_array = []
-	outer_array.append('Combat Data')
-	outer_array.append([sources_array])
+					effect_text += ', %d reflected' % val.reflected
+				effects_array.append(effect_text)
+			destinations_array.append([destination_text, effects_array])
+		sources_array.append([source_text, destinations_array])
+	outer_array = ['Combat Data', sources_array]
 	html += str(outer_array) + ';\n'
 	html += 'var $ = goog.dom.getElement;\n'
 	html += 'var tree = new goog.ui.tree.TreeControl("root");\n'
