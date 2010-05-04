@@ -45,6 +45,13 @@ class Effect:
 		self.absorbed_amount = 0
 		self.reflected = 0
 
+class Entity:
+	def __init__(self, id, name):
+		self.id = id
+		self.name = name
+		self.damage = 0
+		self.healing = 0
+
 class Destination:
 	def __init__(self, id, name):
 		self.id = id
@@ -311,24 +318,26 @@ def parse_data(user, event_name, ignore_pets, ignore_guardians, file):
 	for source in sources.values():
 		source_text = '%s' % source.name
 		timediff = source.end_time - source.start_time
-		total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
+		total_seconds = timediff.seconds + float(timediff.microseconds) / 1000000
+		total_seconds = max(total_seconds, 1.0)
 		if source.damage:
 			dps = float(source.damage) / total_seconds
-			source_text += ', %d damage (%0.1f DPS)' % (source.damage, dps)
+			source_text += ', %d damage over %0.3fs (%0.1f DPS)' % (source.damage, total_seconds, dps)
 		if source.healing:
 			hps = float(source.healing) / total_seconds
-			source_text += ', %d healing (%0.1f HPS)' % (source.healing, hps)
+			source_text += ', %d healing over %0.3fs (%0.1f HPS)' % (source.healing, total_seconds, hps)
 		destinations_array = []
 		for destination in source.destinations.values():
 			destination_text = '%s' % destination.name
 			timediff = destination.end_time - destination.start_time
-			total_seconds = max(timediff.seconds + float(timediff.microseconds) / 1000000, 1.0)
+			total_seconds = timediff.seconds + float(timediff.microseconds) / 1000000
+			total_seconds = max(total_seconds, 1.0)
 			if destination.damage:
 				dps = float(destination.damage) / total_seconds
-				destination_text += ', %d damage (%0.1f DPS)' % (destination.damage, dps)
+				destination_text += ', %d damage over %0.3fs (%0.1f DPS)' % (destination.damage, total_seconds, dps)
 			if destination.healing:
 				hps = float(destination.healing) / total_seconds
-				destination_text += ', %d healing (%0.1f HPS)' % (destination.healing, hps)
+				destination_text += ', %d healing over %0.3fs (%0.1f HPS)' % (destination.healing, total_seconds, hps)
 			effects_array = []
 			for effect in destination.effects.keys():
 				val = destination.effects[effect]
