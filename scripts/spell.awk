@@ -1,4 +1,7 @@
 #!/usr/bin/awk -f
+# this script parses log files and looks up spell damage by effect name and dumps out stats
+# usage: ./spell.awk -v effect="<effect_name>" <combat_log_file>
+# e.g., ./spell.awk -v effect="Blast Nova" WoWCombatLog.txt
 
 BEGIN {
 	# comma-delimited fields
