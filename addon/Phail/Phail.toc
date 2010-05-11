@@ -1,0 +1,9 @@
+## Interface: 30300
+## Author: Bytor
+## Version: 0.1
+## Title: Phail
+## Dependencies:
+
+Phail.lua
+Phail.xml
+
