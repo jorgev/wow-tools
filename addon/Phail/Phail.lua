@@ -11,7 +11,7 @@ function Phail_OnEvent(self, event, ...)
 	if event == "ADDON_LOADED" then
 		local addon = select(1, ...);
 		if addon == "Phail" then
-			DEFAULT_CHAT_FRAME:AddMessage("Phail addon loaded");
+			DEFAULT_CHAT_FRAME:AddMessage("Phail add-on loaded");
 		end
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
 		-- grab the fields that are the same for all events
@@ -38,6 +38,10 @@ function Phail_OnEvent(self, event, ...)
 					end
 				elseif sourceName == "Onyxian Lair Guard" then
 					if spellName == "Blast Nova" then
+						is_fail = true;
+					end
+				elseif sourceName == "Skybreaker Mortar Soldier" then
+					if spellName == "Explosion" then
 						is_fail = true;
 					end
 				end
