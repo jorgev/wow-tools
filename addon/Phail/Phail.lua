@@ -33,7 +33,7 @@ function Phail_OnEvent(self, event, ...)
 						is_fail = true;
 					end
 				elseif sourceName == "Onyxia" then
-					if spellName == "Tail Sweep" or spellName == "Breath"
+					if spellName == "Tail Sweep" or spellName == "Breath" then
 						is_fail = true;
 					end
 				elseif sourceName == "Onyxian Lair Guard" then
@@ -58,6 +58,20 @@ function Phail_OnEvent(self, event, ...)
 				-- SendChatMessage(msg, "WHISPER", nil, destName);
 			end
 		elseif eventSuffix == "HEAL" then
+		elseif combatEvent == "SPELL_AURA_APPLIED" then
+			local spellId, spellName, spellSchool = select(9, ...);
+
+			-- if a player has been hit with mutated infection, set them as the target
+			if sourceName == "Rotface" and spellId == 69674 then
+				FocusUnit(destName);
+			end
+		elseif combatEvent == "SPELL_AURA_REMOVED" then
+			local spellId, spellName, spellSchool = select(9, ...);
+
+			-- if mutated infection has been removed from the player, we remove the focus
+			if sourceName == "Rotface" and spellId == 69674 then
+				ClearFocus();
+			end
 		end
 	end
 end
@@ -70,3 +84,4 @@ function AddFail(name)
 	end
 	return fails[name];
 end
+
