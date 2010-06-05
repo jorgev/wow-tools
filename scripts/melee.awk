@@ -2,14 +2,14 @@
 
 BEGIN {
 	# comma-delimited fields
-	FS = ","
+	FS = "[,\r]"
 }
 
 {
 	# $1 actually contains two fields, which we need to split where the double-space occurs
 	split($1, first, "  ")
 
-	if (first[2] == "SWING_MISSED" && ($8 == "BLOCK" ||$8 == "BLOCK\r" || $8 == "PARRY" || $8 == "PARRY\r"))
+	if (first[2] == "SWING_MISSED" && ($8 == "BLOCK" || $8 == "PARRY"))
 	{
 		# bump hit count and add damage total, based on target name
 		hit_count[$3]++
