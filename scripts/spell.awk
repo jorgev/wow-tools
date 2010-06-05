@@ -16,11 +16,41 @@ BEGIN {
 	split($1, first, "  ")
 
 	# we're only interested in spell damage and it must match the effect name
-	if ((first[2] == "SPELL_DAMAGE" || first[2] == "SPELL_PERIODIC_DAMAGE") && $9 == quoted_effect)
+	if (source && destination)
 	{
-		# bump hit count and add damage total, based on target name
-		hit_count[$6]++
-		damage[$6] += $11
+		if ((first[2] == "SPELL_DAMAGE" || first[2] == "SPELL_PERIODIC_DAMAGE") && $9 == quoted_effect && $3 == "\"" source "\"" && $6 == "\"" destination "\"")
+		{
+			# bump hit count and add damage total, based on target name
+			hit_count[$6]++
+			damage[$6] += $11
+		}
+	}
+	else if (source)
+	{
+		if ((first[2] == "SPELL_DAMAGE" || first[2] == "SPELL_PERIODIC_DAMAGE") && $9 == quoted_effect && $3 == "\"" source "\"")
+		{
+			# bump hit count and add damage total, based on target name
+			hit_count[$6]++
+			damage[$6] += $11
+		}
+	}
+	else if (destination)
+	{
+		if ((first[2] == "SPELL_DAMAGE" || first[2] == "SPELL_PERIODIC_DAMAGE") && $9 == quoted_effect && $6 == "\"" destination "\"")
+		{
+			# bump hit count and add damage total, based on target name
+			hit_count[$6]++
+			damage[$6] += $11
+		}
+	}
+	else
+	{
+		if ((first[2] == "SPELL_DAMAGE" || first[2] == "SPELL_PERIODIC_DAMAGE") && $9 == quoted_effect)
+		{
+			# bump hit count and add damage total, based on target name
+			hit_count[$6]++
+			damage[$6] += $11
+		}
 	}
 }
 
