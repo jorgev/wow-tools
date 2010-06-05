@@ -2,7 +2,7 @@
 
 BEGIN {
 	# comma-delimited fields
-	FS = "[,\r]"
+	FS = ","
 }
 
 {
