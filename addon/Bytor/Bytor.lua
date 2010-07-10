@@ -1,17 +1,17 @@
 fails = {}
 
-function Phail_OnLoad(self)
+function Bytor_OnLoad(self)
 	-- these are the events in which we are interested
 	self:RegisterEvent("ADDON_LOADED");
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 end
 
-function Phail_OnEvent(self, event, ...)
+function Bytor_OnEvent(self, event, ...)
 	-- if we've loaded this add-on, print a message to let the user know
 	if event == "ADDON_LOADED" then
 		local addon = select(1, ...);
-		if addon == "Phail" then
-			DEFAULT_CHAT_FRAME:AddMessage("Phail add-on loaded");
+		if addon == "Bytor" then
+			DEFAULT_CHAT_FRAME:AddMessage("Bytor add-on loaded");
 		end
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
 		-- grab the fields that are the same for all events
@@ -48,7 +48,7 @@ function Phail_OnEvent(self, event, ...)
 			elseif eventPrefix == "SWING" then
 			end
 			
-			-- if we got a phail, send a message
+			-- if we got a fail, send a message
 			if is_fail then
 				fail_count = AddFail(destName);
 				msg = string.format("%s was hit by %s, fail #%d", destName, spellName, fail_count);
