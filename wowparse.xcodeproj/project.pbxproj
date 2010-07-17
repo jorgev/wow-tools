@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		CF6D03E211F13C51007A7019 /* wowparse.cc in Sources */ = {isa = PBXBuildFile; fileRef = CF6D03E111F13C51007A7019 /* wowparse.cc */; };
+		CF6D046C11F162FE007A7019 /* libboost_date_time.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CF6D046B11F162FE007A7019 /* libboost_date_time.dylib */; };
+		CF6D046E11F162FE007A7019 /* libboost_program_options.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CF6D046D11F162FE007A7019 /* libboost_program_options.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,9 @@
 /* Begin PBXFileReference section */
 		8DD76FB20486AB0100D96B5E /* wowparse */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = wowparse; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF6D03E111F13C51007A7019 /* wowparse.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wowparse.cc; sourceTree = "<group>"; };
+		CF6D046511F162E0007A7019 /* libboost_system.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_system.dylib; path = usr/local/lib/libboost_system.dylib; sourceTree = SDKROOT; };
+		CF6D046B11F162FE007A7019 /* libboost_date_time.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_date_time.dylib; path = usr/local/lib/libboost_date_time.dylib; sourceTree = SDKROOT; };
+		CF6D046D11F162FE007A7019 /* libboost_program_options.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_program_options.dylib; path = usr/local/lib/libboost_program_options.dylib; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +37,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CF6D046C11F162FE007A7019 /* libboost_date_time.dylib in Frameworks */,
+				CF6D046E11F162FE007A7019 /* libboost_program_options.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +51,9 @@
 				08FB7795FE84155DC02AAC07 /* Source */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
+				CF6D046511F162E0007A7019 /* libboost_system.dylib */,
+				CF6D046B11F162FE007A7019 /* libboost_date_time.dylib */,
+				CF6D046D11F162FE007A7019 /* libboost_program_options.dylib */,
 			);
 			name = wowparse;
 			sourceTree = "<group>";
