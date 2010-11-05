@@ -1,9 +1,0 @@
-## Interface: 30300
-## Author: Jorge Velazquez
-## Version: 0.1
-## Title: Bytor
-## Dependencies:
-
-Bytor.lua
-Bytor.xml
-
