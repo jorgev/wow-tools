@@ -54,14 +54,7 @@ class LogInfo:
 		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
-		# start reading the file
-		file = open(filename, 'r')
-		while True:
-			# read a single line, exit if nothing read
-		 	line = file.readline()
-			if not line:
-				break
-				
+		for line in open(filename, 'r'):
 			# bump line counter
 			self.total_line_count += 1
 		
