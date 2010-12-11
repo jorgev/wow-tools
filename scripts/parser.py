@@ -24,49 +24,40 @@ class Effect:
 		self.resists = 0
 		self.misses = 0
 
-class Destination:
+class Entity:
 	def __init__(self, id, name):
 		self.id = id
 		self.name = name
-		self.total_damage = 0
-		self.total_healing = 0
+
+class Encounter:
+	def __init__(self, source, destination):
+		self.src = source
+		self.dst = destination
 		self.start_time = datetime.min
 		self.end_time = datetime.min
-		self.effects = {}
-
-class Source:
-	def __init__(self, id, name):
-		self.id = id
-		self.name = name
 		self.total_damage = 0
 		self.total_healing = 0
-		self.destinations = {}
-
-class LogInfo:
-	def __init__(self):
-		self.sources = {}
-		self.total_line_count = 0
-		self.parsed_line_count = 0
+		self.effects = {}
 		
-	def Parse(self, filename):
+	def elapsed_time(self):
+		seconds = (self.end_time - self.start_time).seconds
+		return seconds if seconds > 0 else 1
+		
+class LogInfo:		
+	def Parse(self, filename, source_name = None, destination_name = None):
 		# parsing a new file, reset some of the instance variables
-		self.sources = {}
+		self.entities = {}
+		self.encounters = []
 		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
 		# start reading the file
-		file = open(filename, 'r')
-		while True:
-			# read a single line, exit if nothing read
-		 	line = file.readline()
-			if not line:
-				break
-				
+		for line in open(filename):
 			# bump line counter
 			self.total_line_count += 1
 		
 			# two spaces are used to split the date/time field from the actual combat data
-			major_fields = line.split('  ')
+			major_fields = line.strip().split('  ')
 			if len(major_fields) < 2:
 				continue
 		
@@ -86,61 +77,74 @@ class LogInfo:
 			if srcguid == 0 or dstguid == 0:
 				continue
 			
-			# actual number of lines parsed
-			self.parsed_line_count += 1
-		
 			# strip surrounding double-quots from source and destination names
 			srcname = combat_fields[2][1:-1]
 			dstname = combat_fields[5][1:-1]
 			effect_type = combat_fields[0]
 			
+			# check for filtering on source or destination
+			if source_name and source_name != srcname:
+				continue
+			if destination_name and destination_name != dstname:
+				continue
+
+			# actual number of lines parsed
+			self.parsed_line_count += 1
+		
 			# get the timestamp (NOTE: year is not supplied in the combat log, this will cause problems if log file crosses a year boundary)
 			timestamp = datetime.strptime(date_time, '%m/%d %H:%M:%S.%f')
 		
 			# depending on how many fields we have, damage/healing amount could be in two places
-			if len(combat_fields) == 16:
-				amount = int(combat_fields[7])
-			else:
+			action = combat_fields[0]
+			amount = 0
+			if action in damage_fields:
+				if action == 'SWING_DAMAGE':
+					amount = int(combat_fields[7])
+				else:
+					amount = int(combat_fields[7])
+			elif action in healing_fields:
 				amount = int(combat_fields[10])
 				
 			# add or get source
-			if self.sources.has_key(srcguid):
-				source = self.sources[srcguid]
+			if self.entities.has_key(srcguid):
+				source = self.entities[srcguid]
 			else:
-				source = Source(srcguid, srcname)
-				self.sources[srcguid] = source
-		
-			# update the stats for the source
-			if effect_type in damage_fields:
-				source.total_damage += amount
-			elif effect_type in healing_fields:
-				source.total_healing += amount
+				source = Entity(srcguid, srcname)
+				self.entities[srcguid] = source
 		
 			# add or get destination
-			destinations = source.destinations
-			if destinations.has_key(dstguid):
-				destination = destinations[dstguid]
+			if self.entities.has_key(dstguid):
+				destination = self.entities[dstguid]
 			else:
-				destination = Destination(dstguid, dstname)
-				destinations[dstguid] = destination
-			
-			# update the stats for the destination
+				destination = Entity(dstguid, dstname)
+				self.entities[dstguid] = destination
+
+			encounter = None
+			for enc in self.encounters:
+				if enc.src.id == source.id and enc.dst.id == destination.id:
+					encounter = enc
+					break
+			if not encounter:
+				encounter = Encounter(source, destination)
+				self.encounters.append(encounter)
+				
+			# update the stats for the source
 			if effect_type in damage_fields:
-				destination.total_damage += amount
+				encounter.total_damage += amount
 			elif effect_type in healing_fields:
-				destination.total_healing += amount
-		
+				encounter.total_healing += amount
+				
 			# destination gets the timestamps, for dps/hps calculation
-			if destination.start_time == datetime.min:
-				destination.start_time = timestamp
-			destination.end_time = timestamp
+			if encounter.start_time == datetime.min:
+				encounter.start_time = timestamp
+			encounter.end_time = timestamp
 		
 			# add or get effect
 			if effect_type == 'SWING_DAMAGE':
 				effect_name = "Swing"
 			else:
 				effect_name = combat_fields[8][1:-1]
-			effects = destination.effects
+			effects = encounter.effects
 			if effects.has_key(effect_name):
 				effect = effects[effect_name]
 			else:
