@@ -101,7 +101,7 @@ class LogInfo:
 				if action == 'SWING_DAMAGE':
 					amount = int(combat_fields[7])
 				else:
-					amount = int(combat_fields[7])
+					amount = int(combat_fields[10])
 			elif action in healing_fields:
 				amount = int(combat_fields[10])
 				
