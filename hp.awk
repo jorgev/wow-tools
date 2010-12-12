@@ -53,6 +53,6 @@ END {
 		}
 
 	if (count > 0)
-		printf("Min/Max/Avg: %d/%d/%d\n", min, max, total / count)
+		printf("Count/Min/Max/Avg: %d/%d/%d/%.1f\n", count, min, max, total / count)
 }
 
