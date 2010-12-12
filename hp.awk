@@ -33,15 +33,26 @@ END {
 	print "HP totals for target:", target
 	count = 0
 	total = 0
+	min = 0
+	max = 0
 	for (id in hp)
 		if (id in dead)
 		{
 			print id ":", hp[id]
 			count++
 			total += hp[id]
+			if (min == 0)
+				min = hp[id]
+			else
+			{
+				if (hp[id] < min)
+					min = hp[id]
+			}
+			if (hp[id] > max)
+				max = hp[id]
 		}
 
 	if (count > 0)
-		printf("Average HP: %d\n", total / count)
+		printf("Min/Max/Avg: %d/%d/%d\n", min, max, total / count)
 }
 
