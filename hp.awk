@@ -21,6 +21,10 @@ BEGIN {
 		{
 			hp[$5] += $8
 		}
+		else if (first[2] == "UNIT_DIED")
+		{
+			dead[$5] = 1
+		}
 	}
 }
 
@@ -28,6 +32,7 @@ END {
 	# dump out stats
 	print "Summary for target:", target
 	for (id in hp)
-		print id ":", hp[id]
+		if (id in dead)
+			print id ":", hp[id]
 }
 
