@@ -53,11 +53,13 @@ def main(argv=None):
 			elapsed_time = encounter.elapsed_time()
 			if encounter.total_healing > 0:
 				print '\tTotal healing %d over %.1f seconds (%.1f HPS)' % (encounter.total_healing, elapsed_time, encounter.total_healing / elapsed_time)
-				for v in encounter.effects.values():
-					print '\t\t%s - %d' % (v.name, v.total_healing)
+				for key in sorted(encounter.effects.keys()):
+					value = encounter.effects[key]
+					print '\t\t%s - %d' % (value.name, value.total_healing)
 			if encounter.total_damage > 0:
 				print '\tTotal damage %d over %.1f seconds (%.1f DPS)' % (encounter.total_damage, elapsed_time, encounter.total_damage / elapsed_time)
-				for v in encounter.effects.values():
+				for key in sorted(encounter.effects.keys()):
+					value = encounter.effects[key]
 					print '\t\t%s - %d' % (v.name, v.total_damage)
 
 	except Usage, err:
