@@ -30,9 +30,18 @@ BEGIN {
 
 END {
 	# dump out stats
-	print "Summary for target:", target
+	print "HP totals for target:", target
+	count = 0
+	total = 0
 	for (id in hp)
 		if (id in dead)
+		{
 			print id ":", hp[id]
+			count++
+			total += hp[id]
+		}
+
+	if (count > 0)
+		printf("Average HP: %d\n", total / count)
 }
 
