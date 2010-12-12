@@ -12,18 +12,30 @@ from datetime import datetime
 
 damage_fields = ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE', 'SWING_DAMAGE', 'RANGE_DAMAGE']
 healing_fields = ['SPELL_HEAL', 'SPELL_PERIODIC_HEAL']
-other_fields = ['SPELL_MISSED']
-tracked_fields = damage_fields + healing_fields + other_fields
+missed_fields = ['SPELL_MISSED', 'SWING_MISSED', 'RANGE_MISSED']
+tracked_fields = damage_fields + healing_fields + missed_fields
 
 class Effect:
 	def __init__(self, name):
 		self.name = name
 		self.total_healing = 0
+		self.healing = 0
+		self.periodic_healing = 0
 		self.total_damage = 0
+		self.damage = 0
+		self.periodic_damage = 0
 		self.hits = 0
 		self.ticks = 0
-		self.resists = 0
-		self.misses = 0
+		self.resisted = 0
+		self.missed = 0
+		self.immune = 0
+		self.dodged = 0
+		self.parried = 0
+		self.blocked = 0
+		self.absorbed = 0
+		self.absorbed_amount = 0
+		self.reflected = 0
+		self.evaded = 0
 
 class Entity:
 	def __init__(self, id, name):
@@ -120,50 +132,71 @@ class LogInfo:
 				destination = Entity(dstguid, dstname)
 				self.entities[dstguid] = destination
 
+			# see if we have a record of this encounter already
 			encounter = None
 			for enc in self.encounters:
 				if enc.src.id == source.id and enc.dst.id == destination.id:
 					encounter = enc
 					break
+					
+			# if not, we create a new one
 			if not encounter:
 				encounter = Encounter(source, destination)
 				self.encounters.append(encounter)
 				
-			# update the stats
+			# update the stats for total damage and healing for this encounter
 			if effect_type in damage_fields:
 				encounter.total_damage += amount
 			elif effect_type in healing_fields:
 				encounter.total_healing += amount
 				
-			# destination gets the timestamps, for dps/hps calculation
+			# update the timestamps, for dps/hps calculation
 			if encounter.start_time == datetime.min:
 				encounter.start_time = timestamp
 			encounter.end_time = timestamp
 
 			# add or get effect
-			if effect_type == 'SWING_DAMAGE':
-				effect_name = "Swing"
-			else:
-				effect_name = combat_fields[8][1:-1]
-			effects = encounter.effects
-			if effects.has_key(effect_name):
-				effect = effects[effect_name]
-			else:
-				effect = Effect(effect_name)
-				effects[effect_name] = effect
+			if effect_type in damage_fields or effect_type in healing_fields:
+				if effect_type == 'SWING_DAMAGE':
+					effect_name = 'Swing'
+				else:
+					effect_name = combat_fields[8][1:-1]
+				effects = encounter.effects
+				if effects.has_key(effect_name):
+					effect = effects[effect_name]
+				else:
+					effect = Effect(effect_name)
+					effects[effect_name] = effect
 		
 			# update effect stats
-			if effect_type == 'SPELL_MISSED':
-				effect.misses += 1
+			if effect_type in missed_fields:
+				if effect_type == 'SWING_MISSED':
+					miss_reason = combat_fields[7]
+				else:
+					miss_reason = combat_fields[10]
+				if miss_reason == 'MISS':
+					effect.missed += 1
+				elif miss_reason == 'IMMUNE':
+					effect.immune += 1
+				elif miss_reason == 'PARRY':
+					effect.parried += 1
+				elif miss_reason == 'BLOCK':
+					effect.blocked += 1
+				elif miss_reason == 'IMMUNE':
+					effect.immune += 1
 			elif effect_type in damage_fields:
 				effect.total_damage += amount
 				if effect_type == 'SPELL_PERIODIC_DAMAGE':
+					effect.periodic_damage += amount
 					effect.ticks += 1
 				else:
+					effect.damage += amount
 					effect.hits += 1
 			elif effect_type in healing_fields:
 				effect.total_healing += amount
 				if effect_type == 'SPELL_PERIODIC_HEAL':
+					effect.periodic_healing += amount
 					effect.ticks += 1
 				else:
+					effect.healing += amount
 					effect.hits += 1
