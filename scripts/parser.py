@@ -32,6 +32,7 @@ class Effect:
 		self.dodged = 0
 		self.parried = 0
 		self.blocked = 0
+		self.blocked_amount = 0
 		self.absorbed = 0
 		self.absorbed_amount = 0
 		self.reflected = 0
@@ -156,24 +157,28 @@ class LogInfo:
 			encounter.end_time = timestamp
 
 			# add or get effect
-			if effect_type in damage_fields or effect_type in healing_fields:
-				if effect_type == 'SWING_DAMAGE':
-					effect_name = 'Swing'
-				else:
-					effect_name = combat_fields[8][1:-1]
-				effects = encounter.effects
-				if effects.has_key(effect_name):
-					effect = effects[effect_name]
-				else:
-					effect = Effect(effect_name)
-					effects[effect_name] = effect
+			if effect_type == 'SWING_DAMAGE' or effect_type == 'SWING_MISSED':
+				effect_name = 'Swing'
+			else:
+				effect_name = combat_fields[8][1:-1]
+			effects = encounter.effects
+			if effects.has_key(effect_name):
+				effect = effects[effect_name]
+			else:
+				effect = Effect(effect_name)
+				effects[effect_name] = effect
 		
 			# update effect stats
 			if effect_type in missed_fields:
+				amount = 0 # some miss stats have an amount (block, absorb, etc.)
 				if effect_type == 'SWING_MISSED':
 					miss_reason = combat_fields[7]
+					if len(combat_fields) > 8:
+						amount = int(combat_fields[8])
 				else:
 					miss_reason = combat_fields[10]
+					if len(combat_fields) > 11:
+						amount = int(combat_fields[11])
 				if miss_reason == 'MISS':
 					effect.missed += 1
 				elif miss_reason == 'IMMUNE':
@@ -182,6 +187,10 @@ class LogInfo:
 					effect.parried += 1
 				elif miss_reason == 'BLOCK':
 					effect.blocked += 1
+					effect.blocked_amount += amount
+				elif miss_reason == 'ABSORB':
+					effect.absorbed += 1
+					effect.absorbed_amount += amount
 				elif miss_reason == 'IMMUNE':
 					effect.immune += 1
 			elif effect_type in damage_fields:
