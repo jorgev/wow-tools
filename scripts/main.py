@@ -60,7 +60,7 @@ def main(argv=None):
 				print '\tTotal damage %d over %.1f seconds (%.1f DPS)' % (encounter.total_damage, elapsed_time, encounter.total_damage / elapsed_time)
 				for key in sorted(encounter.effects.keys()):
 					value = encounter.effects[key]
-					print '\t\t%s - %d' % (v.name, v.total_damage)
+					print '\t\t%s - %d' % (value.name, value.total_damage)
 
 	except Usage, err:
 		print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
