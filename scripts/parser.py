@@ -7,6 +7,7 @@ Created by Jorge Velazquez on 2009-05-24.
 """
 
 import re
+import sys
 from datetime import datetime
 
 damage_fields = ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE', 'SWING_DAMAGE', 'RANGE_DAMAGE']
@@ -52,19 +53,18 @@ class LogInfo:
 		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
-		# start reading the file
-		for line in open(filename):
+		for line in open(filename):		
 			# bump line counter
 			self.total_line_count += 1
-		
+	
 			# two spaces are used to split the date/time field from the actual combat data
 			major_fields = line.strip().split('  ')
 			if len(major_fields) < 2:
 				continue
-		
+	
 			# save off the date/time info, we convert later but only if we need to (i.e., we have a log entry that we are interested in)
 			date_time = major_fields[0]
-		
+	
 			# here we provide our own line parser, since we have fields which may contain separators and are wrapped in quotes
 			combat_fields = major_fields[1].split(',')
 
@@ -129,7 +129,7 @@ class LogInfo:
 				encounter = Encounter(source, destination)
 				self.encounters.append(encounter)
 				
-			# update the stats for the source
+			# update the stats
 			if effect_type in damage_fields:
 				encounter.total_damage += amount
 			elif effect_type in healing_fields:
@@ -139,7 +139,7 @@ class LogInfo:
 			if encounter.start_time == datetime.min:
 				encounter.start_time = timestamp
 			encounter.end_time = timestamp
-		
+
 			# add or get effect
 			if effect_type == 'SWING_DAMAGE':
 				effect_name = "Swing"
@@ -151,7 +151,7 @@ class LogInfo:
 			else:
 				effect = Effect(effect_name)
 				effects[effect_name] = effect
-			
+		
 			# update effect stats
 			if effect_type == 'SPELL_MISSED':
 				effect.misses += 1
