@@ -4,7 +4,9 @@
 main.py
 
 Created by Jorge Velázquez on 2010-12-11.
-Copyright (c) 2010 __MyCompanyName__. All rights reserved.
+
+This script is provided mostly for showing how to use the parser.  It can be easily
+modified or enhanced to provide additional information from the log files.
 """
 
 import sys
