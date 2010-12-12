@@ -40,8 +40,9 @@ class Encounter:
 		self.effects = {}
 		
 	def elapsed_time(self):
-		seconds = (self.end_time - self.start_time).seconds
-		return seconds if seconds > 0 else 1
+		elapsed = self.end_time - self.start_time
+		seconds = elapsed.seconds + elapsed.microseconds / 1000000.0
+		return seconds if seconds > 0.0 else 1.0
 		
 class LogInfo:		
 	def Parse(self, filename, source_name = None, destination_name = None):
