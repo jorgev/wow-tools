@@ -55,18 +55,46 @@ def main(argv=None):
 		log_info = parser.LogInfo()
 		log_info.Parse(filename, source_name=source, destination_name=destination)
 		for encounter in log_info.encounters:
-			print encounter.src.name, '=>', encounter.dst.name + ':'
+			print '%s (0x%016X) => %s (0x%016X):' % (encounter.src.name, encounter.src.id, encounter.dst.name, encounter.dst.id)
 			elapsed_time = encounter.elapsed_time()
 			if encounter.total_healing > 0:
 				print '\tTotal healing - %d over %.1f seconds (%.1f HPS)' % (encounter.total_healing, elapsed_time, encounter.total_healing / elapsed_time)
 				for key in sorted(encounter.effects.keys()):
 					value = encounter.effects[key]
-					print '\t\t%s - %d healing' % (value.name, value.total_healing)
+					print '\t\t%s' % value.name,
+					if value.total_healing:
+						print '- %d healing' % value.total_healing,
+					if value.healing:
+						print '- %d hits (%.1f avg)' % (value.hits, value.healing / float(value.hits)),
+					if value.periodic_healing:
+						print '- %d ticks (%.1f avg)' % (value.ticks, value.periodic_healing / float(value.ticks)),
+					if value.overheal:
+						print '- %d overhealing (%.1f%%)' % (value.overheal, value.overheal * 100.0 / value.total_healing),
+					print
 			if encounter.total_damage > 0:
 				print '\tTotal damage - %d over %.1f seconds (%.1f DPS)' % (encounter.total_damage, elapsed_time, encounter.total_damage / elapsed_time)
 				for key in sorted(encounter.effects.keys()):
 					value = encounter.effects[key]
-					print '\t\t%s - %d damage' % (value.name, value.total_damage)
+					print '\t\t%s' % value.name,
+					if value.total_damage:
+						print '- %d damage' % value.total_damage,
+					if value.damage:
+						print '- %d hits (%.1f avg)' % (value.hits, value.damage / float(value.hits)),
+					if value.periodic_damage:
+						print '- %d ticks (%.1f avg)' % (value.ticks, value.periodic_damage / float(value.ticks)),
+					if value.immune:
+						print '- %d immune' % value.immune,
+					if value.missed:
+						print '- %d missed' % value.missed,
+					if value.resisted:
+						print '- %d resisted' % value.resisted,
+					if value.dodged:
+						print '- %d dodged' % value.dodged,
+					if value.parried:
+						print '- %d parried' % value.parried,
+					if value.absorbed:
+						print '- %d hits absorbed for %d' % (value.absorbed, value.absorbed_amount),
+					print
 
 	except Usage, err:
 		print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
