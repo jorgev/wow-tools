@@ -80,7 +80,7 @@ class LogInfo:
 			# save off the date/time info, we convert later but only if we need to (i.e., we have a log entry that we are interested in)
 			date_time = major_fields[0]
 	
-			# here we provide our own line parser, since we have fields which may contain separators and are wrapped in quotes
+			# combat fields are comma-separated
 			combat_fields = major_fields[1].split(',')
 
 			# must be one of the events that we actually track
@@ -97,7 +97,7 @@ class LogInfo:
 			srcflags = int(combat_fields[3], 16)
 			dstflags = int(combat_fields[6], 16)
 			
-			# strip surrounding double-quots from source and destination names
+			# strip surrounding double-quotes from source and destination names
 			srcname = combat_fields[2][1:-1]
 			dstname = combat_fields[5][1:-1]
 			effect_type = combat_fields[0]
