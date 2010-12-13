@@ -51,15 +51,15 @@ def main(argv=None):
 		log_info = parser.LogInfo()
 		log_info.Parse(filename, source_name=source, destination_name=destination)
 		for encounter in log_info.encounters:
-			print encounter.src.name, '->', encounter.dst.name + ':'
+			print encounter.src.name, '=>', encounter.dst.name + ':'
 			elapsed_time = encounter.elapsed_time()
 			if encounter.total_healing > 0:
-				print '\tTotal healing %d over %.1f seconds (%.1f HPS)' % (encounter.total_healing, elapsed_time, encounter.total_healing / elapsed_time)
+				print '\tTotal healing - %d over %.1f seconds (%.1f HPS)' % (encounter.total_healing, elapsed_time, encounter.total_healing / elapsed_time)
 				for key in sorted(encounter.effects.keys()):
 					value = encounter.effects[key]
 					print '\t\t%s - %d' % (value.name, value.total_healing)
 			if encounter.total_damage > 0:
-				print '\tTotal damage %d over %.1f seconds (%.1f DPS)' % (encounter.total_damage, elapsed_time, encounter.total_damage / elapsed_time)
+				print '\tTotal damage - %d over %.1f seconds (%.1f DPS)' % (encounter.total_damage, elapsed_time, encounter.total_damage / elapsed_time)
 				for key in sorted(encounter.effects.keys()):
 					value = encounter.effects[key]
 					print '\t\t%s - %d' % (value.name, value.total_damage)
