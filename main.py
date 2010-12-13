@@ -14,7 +14,7 @@ import getopt
 import parser
 
 help_message = '''
-The help message goes here.
+Usage: main.py [-s source] [-d destination] logfile
 '''
 
 class Usage(Exception):
@@ -42,8 +42,12 @@ def main(argv=None):
 				source = value
 			if option in ("-d", "--destination"):
 				destination = value
-		filename = args[0]
 
+		if len(args) == 0:
+			print >> sys.stderr, 'Please provide the name of the log file as the last argument on the command line'
+			return 1
+		filename = args[0]
+			
 		if not source and not destination:
 			print >> sys.stderr, 'Please provide either a source or destination'
 			return 1
