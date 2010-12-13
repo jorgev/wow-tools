@@ -66,12 +66,12 @@ class LogInfo:
 		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
-		for line in open(filename):		
+		for line in (x.strip() for x in open(filename)):
 			# bump line counter
 			self.total_line_count += 1
 	
 			# two spaces are used to split the date/time field from the actual combat data
-			major_fields = line.strip().split('  ')
+			major_fields = line.split('  ')
 			if len(major_fields) < 2:
 				continue
 	
@@ -191,8 +191,8 @@ class LogInfo:
 				elif miss_reason == 'ABSORB':
 					effect.absorbed += 1
 					effect.absorbed_amount += amount
-				elif miss_reason == 'IMMUNE':
-					effect.immune += 1
+				elif miss_reason == 'EVADE':
+					effect.evade += 1
 			elif effect_type in damage_fields:
 				effect.total_damage += amount
 				if effect_type == 'SPELL_PERIODIC_DAMAGE':
