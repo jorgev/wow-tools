@@ -40,9 +40,10 @@ class Effect:
 		self.evaded = 0
 
 class Entity:
-	def __init__(self, id, name):
+	def __init__(self, id, name, flags):
 		self.id = id
 		self.name = name
+		self.flags = flags
 
 class Encounter:
 	def __init__(self, source, destination):
@@ -91,6 +92,10 @@ class LogInfo:
 			dstguid = int(combat_fields[4], 16)
 			if srcguid == 0 or dstguid == 0:
 				continue
+				
+			# get the flags
+			srcflags = int(combat_fields[3], 16)
+			dstflags = int(combat_fields[6], 16)
 			
 			# strip surrounding double-quots from source and destination names
 			srcname = combat_fields[2][1:-1]
@@ -124,14 +129,14 @@ class LogInfo:
 			if self.entities.has_key(srcguid):
 				source = self.entities[srcguid]
 			else:
-				source = Entity(srcguid, srcname)
+				source = Entity(srcguid, srcname, srcflags)
 				self.entities[srcguid] = source
 		
 			# add or get destination
 			if self.entities.has_key(dstguid):
 				destination = self.entities[dstguid]
 			else:
-				destination = Entity(dstguid, dstname)
+				destination = Entity(dstguid, dstname, dstflags)
 				self.entities[dstguid] = destination
 
 			# see if we have a record of this encounter already
