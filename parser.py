@@ -21,6 +21,7 @@ class Effect:
 		self.total_healing = 0
 		self.healing = 0
 		self.periodic_healing = 0
+		self.overheal = 0
 		self.total_damage = 0
 		self.damage = 0
 		self.periodic_damage = 0
@@ -203,6 +204,7 @@ class LogInfo:
 					effect.hits += 1
 			elif effect_type in healing_fields:
 				effect.total_healing += amount
+				effect.overheal += int(combat_fields[11])
 				if effect_type == 'SPELL_PERIODIC_HEAL':
 					effect.periodic_healing += amount
 					effect.ticks += 1
