@@ -48,10 +48,6 @@ def main(argv=None):
 			return 1
 		filename = args[0]
 			
-		if not source and not destination:
-			print >> sys.stderr, 'Please provide either a source or destination'
-			return 1
-			
 		log_info = parser.LogInfo()
 		log_info.Parse(filename, source_name=source, destination_name=destination)
 		for encounter in log_info.encounters:
