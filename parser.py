@@ -202,7 +202,7 @@ class LogInfo:
 					effect.absorbed += 1
 					effect.absorbed_amount += amount
 				elif miss_reason == 'EVADE':
-					effect.evade += 1
+					effect.evaded += 1
 			elif effect_type in damage_fields:
 				effect.total_damage += amount
 				if effect_type == 'SPELL_PERIODIC_DAMAGE':
