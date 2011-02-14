@@ -48,17 +48,16 @@ def main(argv=None):
 			return 1
 		filename = args[0]
 			
-		if not source and not destination:
-			print >> sys.stderr, 'Please provide either a source or destination'
-			return 1
-			
 		log_info = parser.LogInfo()
 		log_info.Parse(filename, source_name=source, destination_name=destination)
 		for encounter in log_info.encounters:
 			print '%s (0x%016X) => %s (0x%016X):' % (encounter.src.name, encounter.src.id, encounter.dst.name, encounter.dst.id)
 			elapsed_time = encounter.elapsed_time()
 			if encounter.total_healing > 0:
-				print '\tTotal healing - %d over %.1f seconds (%.1f HPS)' % (encounter.total_healing, elapsed_time, encounter.total_healing / elapsed_time)
+				print '\tTotal healing - %d over %.1f seconds (%.1f HPS)' % (encounter.total_healing, elapsed_time, encounter.total_healing / elapsed_time),
+				if encounter.total_overhealing:
+					print '- %d overhealing (%.1f%%)' % (encounter.total_overhealing, encounter.total_overhealing * 100.0 / encounter.total_healing),
+				print
 				for key in sorted(encounter.effects.keys()):
 					value = encounter.effects[key]
 					print '\t\t%s' % value.name,

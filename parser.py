@@ -53,6 +53,7 @@ class Encounter:
 		self.end_time = datetime.min
 		self.total_damage = 0
 		self.total_healing = 0
+		self.total_overhealing = 0
 		self.effects = {}
 		
 	def elapsed_time(self):
@@ -117,6 +118,7 @@ class LogInfo:
 			# depending on how many fields we have, damage/healing amount could be in two places
 			action = combat_fields[0]
 			amount = 0
+			overheal = 0
 			if action in damage_fields:
 				if action == 'SWING_DAMAGE':
 					amount = int(combat_fields[7])
@@ -124,6 +126,7 @@ class LogInfo:
 					amount = int(combat_fields[10])
 			elif action in healing_fields:
 				amount = int(combat_fields[10])
+				overheal = int(combat_fields[11])
 				
 			# add or get source
 			if self.entities.has_key(srcguid):
@@ -156,6 +159,7 @@ class LogInfo:
 				encounter.total_damage += amount
 			elif effect_type in healing_fields:
 				encounter.total_healing += amount
+				encounter.total_overhealing += overheal
 				
 			# update the timestamps, for dps/hps calculation
 			if encounter.start_time == datetime.min:
@@ -198,7 +202,7 @@ class LogInfo:
 					effect.absorbed += 1
 					effect.absorbed_amount += amount
 				elif miss_reason == 'EVADE':
-					effect.evade += 1
+					effect.evaded += 1
 			elif effect_type in damage_fields:
 				effect.total_damage += amount
 				if effect_type == 'SPELL_PERIODIC_DAMAGE':
@@ -209,7 +213,7 @@ class LogInfo:
 					effect.hits += 1
 			elif effect_type in healing_fields:
 				effect.total_healing += amount
-				effect.overheal += int(combat_fields[11])
+				effect.overheal += overheal
 				if effect_type == 'SPELL_PERIODIC_HEAL':
 					effect.periodic_healing += amount
 					effect.ticks += 1
