@@ -11,31 +11,37 @@ BEGIN {
 	# $1 actually contains two fields, which we need to split where the double-space occurs
 	split($1, first, "  ")
 
-	if ($6 == "\"" target "\"")
+	if ($7 == "\"" target "\"")
 	{
 		if (first[2] == "SPELL_DAMAGE" || first[2] == "SPELL_PERIODIC_DAMAGE" || first[2] == "RANGE_DAMAGE")
 		{
-			hp[$5] += $11
+			# for all types of damage except swing, the damage amount is field 11
+			hp[$6] += $13
 		}
 		else if (first[2] == "SWING_DAMAGE")
 		{
-			hp[$5] += $8
+			# for swing damage, the damage amount is in field 8
+			hp[$6] += $10
 		}
 		else if (first[2] == "UNIT_DIED")
 		{
-			dead[$5] = 1
+			# log whether or not the unit died, we only dump out stats for dead things
+			dead[$6] = 1
 		}
 	}
 }
 
 END {
-	# dump out stats
+	# set up the vars we'll use to track the hp
 	print "HP totals for target:", target
 	count = 0
 	total = 0
 	min = 0
 	max = 0
+
+	# iterate through each npc that we tracked
 	for (id in hp)
+		# only dump stats for npcs that died, otherwise total hp is going to be inaccurate
 		if (id in dead)
 		{
 			print id ":", hp[id]
@@ -54,5 +60,7 @@ END {
 
 	if (count > 0)
 		printf("Count/Min/Max/Avg: %d/%d/%d/%.1f\n", count, min, max, total / count)
+	else
+		print "No data found for", target
 }
 
