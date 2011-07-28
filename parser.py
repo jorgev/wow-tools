@@ -83,14 +83,14 @@ class LogInfo:
 				continue
 
 			# if source or destination id is zero, we can't do anything with it
-			srcguid = int(row[3], 16)
-			dstguid = int(row[7], 16)
+			srcguid = long(row[1], 16)
+			dstguid = long(row[5], 16)
 			if srcguid == 0 or dstguid == 0:
 				continue
 				
 			# get the flags
-			srcflags = int(row[1], 16)
-			dstflags = int(row[5], 16)
+			srcflags = int(row[3], 16)
+			dstflags = int(row[7], 16)
 			
 			# strip surrounding double-quotes from source and destination names
 			srcname = row[2]
