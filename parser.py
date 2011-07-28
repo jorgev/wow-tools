@@ -6,6 +6,7 @@ wowparse.py
 Created by Jorge Velazquez on 2009-05-24.
 """
 
+import csv
 import re
 import sys
 from datetime import datetime
@@ -69,39 +70,31 @@ class LogInfo:
 		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
-		for line in (x.strip() for x in open(filename)):
+		reader = csv.reader(open(filename))
+		for row in reader:
 			# bump line counter
 			self.total_line_count += 1
 	
 			# two spaces are used to split the date/time field from the actual combat data
-			major_fields = line.split('  ')
-			if len(major_fields) < 2:
-				continue
+			timestamp, event = row[0].split('  ')
 	
-			# save off the date/time info, we convert later but only if we need to (i.e., we have a log entry that we are interested in)
-			date_time = major_fields[0]
-	
-			# combat fields are comma-separated
-			combat_fields = major_fields[1].split(',')
-
 			# must be one of the events that we actually track
-			if not combat_fields[0] in tracked_fields:
+			if not event in tracked_fields:
 				continue
 
 			# if source or destination id is zero, we can't do anything with it
-			srcguid = int(combat_fields[1], 16)
-			dstguid = int(combat_fields[4], 16)
+			srcguid = int(row[3], 16)
+			dstguid = int(row[7], 16)
 			if srcguid == 0 or dstguid == 0:
 				continue
 				
 			# get the flags
-			srcflags = int(combat_fields[3], 16)
-			dstflags = int(combat_fields[6], 16)
+			srcflags = int(row[1], 16)
+			dstflags = int(row[5], 16)
 			
 			# strip surrounding double-quotes from source and destination names
-			srcname = combat_fields[2][1:-1]
-			dstname = combat_fields[5][1:-1]
-			effect_type = combat_fields[0]
+			srcname = row[2]
+			dstname = row[6]
 			
 			# check for filtering on source or destination
 			if source_name and source_name != srcname:
@@ -113,20 +106,19 @@ class LogInfo:
 			self.parsed_line_count += 1
 		
 			# get the timestamp (NOTE: year is not supplied in the combat log, this will cause problems if log file crosses a year boundary)
-			timestamp = datetime.strptime(date_time, '%m/%d %H:%M:%S.%f')
+			timestamp = datetime.strptime(timestamp, '%m/%d %H:%M:%S.%f')
 		
 			# depending on how many fields we have, damage/healing amount could be in two places
-			action = combat_fields[0]
 			amount = 0
 			overheal = 0
-			if action in damage_fields:
-				if action == 'SWING_DAMAGE':
-					amount = int(combat_fields[7])
+			if event in damage_fields:
+				if event == 'SWING_DAMAGE':
+					amount = int(row[9])
 				else:
-					amount = int(combat_fields[10])
-			elif action in healing_fields:
-				amount = int(combat_fields[10])
-				overheal = int(combat_fields[11])
+					amount = int(row[12])
+			elif event in healing_fields:
+				amount = int(row[12])
+				overheal = int(row[13])
 				
 			# add or get source
 			if self.entities.has_key(srcguid):
@@ -155,9 +147,9 @@ class LogInfo:
 				self.encounters.append(encounter)
 				
 			# update the stats for total damage and healing for this encounter
-			if effect_type in damage_fields:
+			if event in damage_fields:
 				encounter.total_damage += amount
-			elif effect_type in healing_fields:
+			elif event in healing_fields:
 				encounter.total_healing += amount
 				encounter.total_overhealing += overheal
 				
@@ -167,10 +159,10 @@ class LogInfo:
 			encounter.end_time = timestamp
 
 			# add or get effect
-			if effect_type == 'SWING_DAMAGE' or effect_type == 'SWING_MISSED':
+			if event == 'SWING_DAMAGE' or event == 'SWING_MISSED':
 				effect_name = 'Swing'
 			else:
-				effect_name = combat_fields[8][1:-1]
+				effect_name = row[10]
 			effects = encounter.effects
 			if effects.has_key(effect_name):
 				effect = effects[effect_name]
@@ -179,16 +171,16 @@ class LogInfo:
 				effects[effect_name] = effect
 		
 			# update effect stats
-			if effect_type in missed_fields:
+			if event in missed_fields:
 				amount = 0 # some miss stats have an amount (block, absorb, etc.)
-				if effect_type == 'SWING_MISSED':
-					miss_reason = combat_fields[7]
-					if len(combat_fields) > 8:
-						amount = int(combat_fields[8])
+				if event == 'SWING_MISSED':
+					miss_reason = row[9]
+					if len(row) > 10:
+						amount = int(row[10])
 				else:
-					miss_reason = combat_fields[10]
-					if len(combat_fields) > 11:
-						amount = int(combat_fields[11])
+					miss_reason = row[12]
+					if len(row) > 13:
+						amount = int(row[13])
 				if miss_reason == 'MISS':
 					effect.missed += 1
 				elif miss_reason == 'IMMUNE':
@@ -203,18 +195,18 @@ class LogInfo:
 					effect.absorbed_amount += amount
 				elif miss_reason == 'EVADE':
 					effect.evaded += 1
-			elif effect_type in damage_fields:
+			elif event in damage_fields:
 				effect.total_damage += amount
-				if effect_type == 'SPELL_PERIODIC_DAMAGE':
+				if event == 'SPELL_PERIODIC_DAMAGE':
 					effect.periodic_damage += amount
 					effect.ticks += 1
 				else:
 					effect.damage += amount
 					effect.hits += 1
-			elif effect_type in healing_fields:
+			elif event in healing_fields:
 				effect.total_healing += amount
 				effect.overheal += overheal
-				if effect_type == 'SPELL_PERIODIC_HEAL':
+				if event == 'SPELL_PERIODIC_HEAL':
 					effect.periodic_healing += amount
 					effect.ticks += 1
 				else:
