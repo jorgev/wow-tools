@@ -13,10 +13,15 @@ NPC_EFFECTS = { 'Temple Guardian Anhuur': [],
 def main(argv=None):
 	if argv is None:
 		argv = sys.argv
-	filename = argv[1]
+		
+	# can read from file or stdin
+	if len(argv) > 1:
+		reader = csv.reader(open(argv[1]))
+	else:
+		reader = csv.reader(sys.stdin)
 
-	reader = csv.reader(open(filename))
 	for row in reader:
+		# we need to further split the first field
 		timestamp, event = row[0].split('  ')
 		
 		# the data we are interested in all has 21 fields in it, so we can verify that up front
