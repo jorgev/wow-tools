@@ -14,12 +14,13 @@ def main(argv=None):
 	if argv is None:
 		argv = sys.argv
 		
-	# can read from file or stdin
+	# can read from file or stdin, assume file is the only argument, if any
 	if len(argv) > 1:
 		reader = csv.reader(open(argv[1]))
 	else:
 		reader = csv.reader(sys.stdin)
 
+	# iterate over the rows in the log file
 	for row in reader:
 		# we need to further split the first field
 		timestamp, event = row[0].split('  ')
@@ -37,7 +38,7 @@ def main(argv=None):
 						# we're only interested in players (i.e., not pets, guardians, etc.)
 						target_flags = int(row[7], 16)
 						if target_flags & 0x400:
-							# dump out the result and (hopefully) embarass the player
+							# dump out the result and (hopefully) embarrass the player
 							print row[6], 'hit by', effect, 'for', row[12]
 
 if __name__ == "__main__":
