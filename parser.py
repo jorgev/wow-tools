@@ -70,6 +70,10 @@ class LogInfo:
 		self.total_line_count = 0
 		self.parsed_line_count = 0
 		
+		# warn if no source or destination, parsing may take a while
+		if not source_name and not destination_name:
+			print 'No source or destination specified, parsing may take a while and output may be lengthy'
+
 		reader = csv.reader(open(filename))
 		for row in reader:
 			# bump line counter
@@ -101,7 +105,7 @@ class LogInfo:
 				continue
 			if destination_name and destination_name != dstname:
 				continue
-
+			
 			# actual number of lines parsed
 			self.parsed_line_count += 1
 		
