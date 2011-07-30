@@ -4,6 +4,10 @@ import csv
 import sys
 import getopt
 
+help_message = '''
+Usage: hp.py -n name logfile
+'''
+
 class Usage(Exception):
 	def __init__(self, msg):
 		self.msg = msg
