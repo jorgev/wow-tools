@@ -100,7 +100,7 @@ class LogInfo:
 			if ignore_guardians and (srcflags & 0x2000 != 0 or dstflags & 0x2000 != 0):
 				continue
 			
-			# strip surrounding double-quotes from source and destination names
+			# get source and destination names
 			srcname = row[2]
 			dstname = row[6]
 			
