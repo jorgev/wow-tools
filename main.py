@@ -14,7 +14,7 @@ import getopt
 import parser
 
 help_message = '''
-Usage: main.py [-s source] [-d destination] logfile
+Usage: main.py [-s source] [-d destination] [--ignore_pets] [--ignore_guardians] logfile
 '''
 
 class Usage(Exception):
