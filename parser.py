@@ -63,7 +63,7 @@ class Encounter:
 		return seconds if seconds > 0.0 else 1.0
 		
 class LogInfo:		
-	def Parse(self, filename, source_name = None, destination_name = None):
+	def Parse(self, filename, source_name = None, destination_name = None, ignore_pets = False, ignore_guardians = False):
 		# parsing a new file, reset some of the instance variables
 		self.encounters = []
 		self.total_line_count = 0
@@ -95,8 +95,12 @@ class LogInfo:
 			# get the flags
 			srcflags = int(row[3], 16)
 			dstflags = int(row[7], 16)
+			if ignore_pets and (srcflags & 0x1000 != 0 or dstflags & 0x1000 != 0):
+				continue
+			if ignore_guardians and (srcflags & 0x2000 != 0 or dstflags & 0x2000 != 0):
+				continue
 			
-			# strip surrounding double-quotes from source and destination names
+			# get source and destination names
 			srcname = row[2]
 			dstname = row[6]
 			

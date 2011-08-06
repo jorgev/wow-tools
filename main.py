@@ -26,13 +26,15 @@ def main(argv=None):
 		argv = sys.argv
 	try:
 		try:
-			opts, args = getopt.getopt(argv[1:], 'hs:d:v', ['help', 'source=', 'destination='])
+			opts, args = getopt.getopt(argv[1:], 'hs:d:v', ['help', 'source=', 'destination=', 'ignore_pets', 'ignore_guardians'])
 		except getopt.error, msg:
 			raise Usage(msg)
 	
 		# option processing
 		source = None
 		destination = None
+		ignore_pets = False
+		ignore_guardians = False
 		for option, value in opts:
 			if option == "-v":
 				verbose = True
@@ -42,6 +44,10 @@ def main(argv=None):
 				source = value
 			if option in ("-d", "--destination"):
 				destination = value
+			if option in ("--ignore_pets"):
+				ignore_pets = True
+			if option in ("--ignore_guardians"):
+				ignore_guardians = True
 
 		if len(args) == 0:
 			print >> sys.stderr, 'Please provide the name of the log file as the last argument on the command line'
