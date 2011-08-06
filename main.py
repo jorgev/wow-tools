@@ -47,10 +47,13 @@ def main(argv=None):
 			print >> sys.stderr, 'Please provide the name of the log file as the last argument on the command line'
 			return 1
 		filename = args[0]
-			
+		
+		# parse the log file	
 		log_info = parser.LogInfo()
-		log_info.Parse(filename, source_name=source, destination_name=destination)
-		for encounter in log_info.encounters:
+		encounters = log_info.Parse(filename, source_name=source, destination_name=destination)
+		
+		# dump out the stats
+		for encounter in encounters:
 			print '%s (0x%016X) => %s (0x%016X):' % (encounter.src.name, encounter.src.id, encounter.dst.name, encounter.dst.id)
 			elapsed_time = encounter.elapsed_time()
 			if encounter.total_healing > 0:

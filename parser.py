@@ -65,10 +65,10 @@ class Encounter:
 class LogInfo:		
 	def Parse(self, filename, source_name = None, destination_name = None):
 		# parsing a new file, reset some of the instance variables
-		self.entities = {}
 		self.encounters = []
 		self.total_line_count = 0
 		self.parsed_line_count = 0
+		entities = {}
 		
 		# warn if no source or destination, parsing may take a while
 		if not source_name and not destination_name:
@@ -125,18 +125,18 @@ class LogInfo:
 				overheal = int(row[13])
 				
 			# add or get source
-			if self.entities.has_key(srcguid):
-				source = self.entities[srcguid]
+			if entities.has_key(srcguid):
+				source = entities[srcguid]
 			else:
 				source = Entity(srcguid, srcname, srcflags)
-				self.entities[srcguid] = source
+				entities[srcguid] = source
 		
 			# add or get destination
-			if self.entities.has_key(dstguid):
-				destination = self.entities[dstguid]
+			if entities.has_key(dstguid):
+				destination = entities[dstguid]
 			else:
 				destination = Entity(dstguid, dstname, dstflags)
-				self.entities[dstguid] = destination
+				entities[dstguid] = destination
 
 			# see if we have a record of this encounter already
 			encounter = None
@@ -216,3 +216,5 @@ class LogInfo:
 				else:
 					effect.healing += amount
 					effect.hits += 1
+		
+		return self.encounters
