@@ -24,6 +24,8 @@ def main(argv=None):
 
 		# option processing
 		effect = None
+		source = None
+		destination = None
 		for option, value in opts:
 			if option == "-v":
 				verbose = True
@@ -56,6 +58,12 @@ def main(argv=None):
 			# has to be a field that contains a spell effect
 			if not event in ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE']:
 				continue
+
+			# check if we're filtering
+			if source and source != row[2]:
+				continue
+			if destination and destination != row[6]:
+				continue
 			
 			# now match on the effect name
 			if effect == row[10]:
@@ -74,7 +82,7 @@ def main(argv=None):
 		elif ticks > 0:
 			print '%s - %d ticks for %d damage (%.1f avg)' % (effect, ticks, tick_damage, float(tick_damage) / ticks)
 		else:
-			print 'No damage recorded for effect %s' % effect
+			print 'No damage recorded for the arguments given'
 
 	except Usage, err:
 		print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
