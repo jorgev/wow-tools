@@ -42,10 +42,39 @@ def main(argv=None):
 		else:
 			reader = csv.reader(sys.stdin)
 
+		# initialize our vars
+		hit_damage = 0
+		tick_damage = 0
+		hits = 0
+		ticks = 0
+		
 		# iterate over the rows in the log file
 		for row in reader:
 			# we need to further split the first field
 			timestamp, event = row[0].split('  ')
+			
+			# has to be a field that contains a spell effect
+			if not event in ['SPELL_DAMAGE', 'SPELL_PERIODIC_DAMAGE']:
+				continue
+			
+			# now match on the effect name
+			if effect == row[10]:
+				if event == 'SPELL_DAMAGE':
+					hits += 1
+					hit_damage += int(row[12])
+				elif event == 'SPELL_PERIODIC_DAMAGE':
+					ticks += 1
+					tick_damage += int(row[12])
+		
+		# dump out the results
+		if hits > 0 and ticks > 0:
+			print '%s - %d hits for %d damage (%.1f avg), %d ticks for %d damage (%.1f avg)' % (effect, hits, hit_damage, float(hit_damage) / hits, ticks, tick_damage, float(tick_damage) / ticks)
+		elif hits > 0:
+			print '%s - %d hits for %d damage (%.1f avg)' % (effect, hits, hit_damage, float(hit_damage) / hits)
+		elif ticks > 0:
+			print '%s - %d ticks for %d damage (%.1f avg)' % (effect, ticks, tick_damage, float(tick_damage) / ticks)
+		else:
+			print 'No damage recorded for effect %s' % effect
 
 	except Usage, err:
 		print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
