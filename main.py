@@ -68,40 +68,40 @@ def main(argv=None):
 					print '- %d overhealing (%.1f%%)' % (encounter.total_overhealing, encounter.total_overhealing * 100.0 / encounter.total_healing),
 				print
 				for key in sorted(encounter.effects.keys()):
-					value = encounter.effects[key]
-					print '\t\t%s' % value.name,
-					if value.total_healing:
-						print '- %d healing' % value.total_healing,
-					if value.healing:
-						print '- %d hits (%.1f avg)' % (value.hits, value.healing / float(value.hits)),
-					if value.periodic_healing:
-						print '- %d ticks (%.1f avg)' % (value.ticks, value.periodic_healing / float(value.ticks)),
-					if value.overheal:
-						print '- %d overhealing (%.1f%%)' % (value.overheal, value.overheal * 100.0 / value.total_healing),
+					effect = encounter.effects[key]
+					print '\t\t%s' % effect.name,
+					if effect.total_healing:
+						print '- %d healing' % effect.total_healing,
+					if effect.healing:
+						print '- %d hits (%.1f avg)' % (effect.hits, effect.healing / float(effect.hits)),
+					if effect.periodic_healing:
+						print '- %d ticks (%.1f avg)' % (effect.ticks, effect.periodic_healing / float(effect.ticks)),
+					if effect.overheal:
+						print '- %d overhealing (%.1f%%)' % (effect.overheal, effect.overheal * 100.0 / effect.total_healing),
 					print
 			if encounter.total_damage > 0:
 				print '\tTotal damage - %d over %.1f seconds (%.1f DPS)' % (encounter.total_damage, elapsed_time, encounter.total_damage / elapsed_time)
 				for key in sorted(encounter.effects.keys()):
-					value = encounter.effects[key]
-					print '\t\t%s' % value.name,
-					if value.total_damage:
-						print '- %d damage' % value.total_damage,
-					if value.damage:
-						print '- %d hits (%.1f avg)' % (value.hits, value.damage / float(value.hits)),
-					if value.periodic_damage:
-						print '- %d ticks (%.1f avg)' % (value.ticks, value.periodic_damage / float(value.ticks)),
-					if value.immune:
-						print '- %d immune' % value.immune,
-					if value.missed:
-						print '- %d missed' % value.missed,
-					if value.resisted:
-						print '- %d resisted' % value.resisted,
-					if value.dodged:
-						print '- %d dodged' % value.dodged,
-					if value.parried:
-						print '- %d parried' % value.parried,
-					if value.absorbed:
-						print '- %d hits absorbed for %d' % (value.absorbed, value.absorbed_amount),
+					effect = encounter.effects[key]
+					print '\t\t%s' % effect.name,
+					if effect.total_damage:
+						print '- %d damage' % effect.total_damage,
+					if effect.damage:
+						print '- %d hits (%.1f avg)' % (effect.hits, effect.damage / float(effect.hits)),
+					if effect.periodic_damage:
+						print '- %d ticks (%.1f avg)' % (effect.ticks, effect.periodic_damage / float(effect.ticks)),
+					if effect.immune:
+						print '- %d immune' % effect.immune,
+					if effect.missed:
+						print '- %d missed' % effect.missed,
+					if effect.resisted:
+						print '- %d resisted' % effect.resisted,
+					if effect.dodged:
+						print '- %d dodged' % effect.dodged,
+					if effect.parried:
+						print '- %d parried' % effect.parried,
+					if effect.absorbed:
+						print '- %d hits absorbed for %d' % (effect.absorbed, effect.absorbed_amount),
 					print
 
 	except Usage, err:
