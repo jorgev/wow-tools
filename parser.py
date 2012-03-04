@@ -128,15 +128,15 @@ class LogInfo:
 				amount = int(row[12])
 				overheal = int(row[13])
 				
-			# add or get source
-			if entities.has_key(srcguid):
+			# create or get source
+			if srcguid in entities:
 				source = entities[srcguid]
 			else:
 				source = Entity(srcguid, srcname, srcflags)
 				entities[srcguid] = source
 		
-			# add or get destination
-			if entities.has_key(dstguid):
+			# create or get destination
+			if dstguid in entities:
 				destination = entities[dstguid]
 			else:
 				destination = Entity(dstguid, dstname, dstflags)
