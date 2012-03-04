@@ -4,6 +4,8 @@
 wowparse.py
 
 Created by Jorge Velazquez on 2009-05-24.
+
+Combat log parser for WoW
 """
 
 import csv
